@@ -216,7 +216,7 @@ def one_of(
     - ``caseless`` - treat all literals as caseless - (default= ``False``)
     - ``use_regex`` - as an optimization, will
       generate a :class:`Regex` object; otherwise, will generate
-      a :class:`MatchFirst` object (if ``caseless=True`` or ``asKeyword=True``, or if
+      a :class:`MatchFirst` object (if ``caseless=True`` or ``as_keyword=True``, or if
       creating a :class:`Regex` raises an exception) - (default= ``True``)
     - ``as_keyword`` - enforce :class:`Keyword`-style matching on the
       generated expressions - (default= ``False``)
@@ -433,7 +433,7 @@ def locatedExpr(expr: ParserElement) -> ParserElement:
     - ``value`` - the actual parsed results
 
     Be careful if the input text contains ``<TAB>`` characters, you
-    may want to call :class:`ParserElement.parseWithTabs`
+    may want to call :class:`ParserElement.parse_with_tabs`
 
     Example::
 
@@ -941,19 +941,19 @@ def indentedBlock(blockStatementExpr, indentStack, indent=True, backup_stacks=[]
         stmt = Forward()
 
         identifier = Word(alphas, alphanums)
-        funcDecl = ("def" + identifier + Group("(" + Opt(delimitedList(identifier)) + ")") + ":")
+        funcDecl = ("def" + identifier + Group("(" + Opt(delimited_list(identifier)) + ")") + ":")
         func_body = indentedBlock(stmt, indentStack)
         funcDef = Group(funcDecl + func_body)
 
         rvalue = Forward()
-        funcCall = Group(identifier + "(" + Opt(delimitedList(rvalue)) + ")")
+        funcCall = Group(identifier + "(" + Opt(delimited_list(rvalue)) + ")")
         rvalue << (funcCall | identifier | Word(nums))
         assignment = Group(identifier + "=" + rvalue)
         stmt << (funcDef | assignment | identifier)
 
         module_body = stmt[1, ...]
 
-        parseTree = module_body.parseString(data)
+        parseTree = module_body.parse_string(data)
         parseTree.pprint()
 
     prints::

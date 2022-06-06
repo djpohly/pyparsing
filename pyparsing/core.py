@@ -482,7 +482,7 @@ class ParserElement(ABC):
             base.suppress_warning(Diagnostics.warn_on_parse_using_empty_Forward)
 
             # statement would normally raise a warning, but is now suppressed
-            print(base.parseString("x"))
+            print(base.parse_string("x"))
 
         """
         self.suppress_warnings_.append(warning_type)
@@ -692,7 +692,7 @@ class ParserElement(ABC):
         - message = define a custom message to be used in the raised exception
         - fatal = if True, will raise ParseFatalException to stop parsing immediately; otherwise will raise
           ParseException
-        - call_during_try = boolean to indicate if this method should be called during internal tryParse calls,
+        - call_during_try = boolean to indicate if this method should be called during internal try_parse calls,
           default=False
 
         Example::
@@ -2359,7 +2359,7 @@ class Keyword(Token):
     Accepts two optional constructor arguments in addition to the
     keyword string:
 
-    - ``identChars`` is a string of characters that would be valid
+    - ``ident_chars`` is a string of characters that would be valid
       identifier characters, defaulting to all alphanumerics + "_" and
       "$"
     - ``caseless`` allows case-insensitive matching, default is ``False``.

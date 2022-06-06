@@ -947,7 +947,7 @@ Exception classes and Troubleshooting
 
       expr = pp.Word(pp.alphanums).set_name("word").set_debug()
       print(ppt.with_line_numbers(data))
-      expr[...].parseString(data)
+      expr[...].parse_string(data)
 
   prints::
 
@@ -1097,7 +1097,7 @@ Helper methods
 
         expr = infix_notation(int_expr,
             [
-                (one_of("+ -"), 2, opAssoc.LEFT),
+                (one_of("+ -"), 2, OpAssoc.LEFT),
             ],
             lpar="<",
             rpar=">"
@@ -1112,7 +1112,7 @@ Helper methods
 
         expr = infix_notation(int_expr,
             [
-                (one_of("+ -"), 2, opAssoc.LEFT),
+                (one_of("+ -"), 2, OpAssoc.LEFT),
             ],
             lpar=Literal("<"),
             rpar=Literal(">")

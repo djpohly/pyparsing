@@ -56,7 +56,7 @@ self-explanatory class names, and the use of :class:`'+'<And>`,
 :class:`'|'<MatchFirst>`, :class:`'^'<Or>` and :class:`'&'<Each>` operators.
 
 The :class:`ParseResults` object returned from
-:class:`ParserElement.parseString` can be
+:class:`ParserElement.parse_string` can be
 accessed as a nested list, a dictionary, or an object with named
 attributes.
 
@@ -85,11 +85,11 @@ classes inherit from. Use the docstrings for examples of how to:
    and :class:`'&'<Each>` operators to combine simple expressions into
    more complex ones
  - associate names with your parsed results using
-   :class:`ParserElement.setResultsName`
+   :class:`ParserElement.set_results_name`
  - access the parsed data, which is returned as a :class:`ParseResults`
    object
- - find some helpful expression short-cuts like :class:`delimitedList`
-   and :class:`oneOf`
+ - find some helpful expression short-cuts like :class:`delimited_list`
+   and :class:`one_of`
  - find more useful common expressions in the :class:`pyparsing_common`
    namespace class
 """

@@ -31,7 +31,7 @@ class pyparsing_test:
 
             with reset_pyparsing_context():
                 # test that literals used to construct a grammar are automatically suppressed
-                ParserElement.inlineLiteralsUsing(Suppress)
+                ParserElement.inline_literals_using(Suppress)
 
                 term = Word(alphas) | Word(nums)
                 group = Group('(' + term[...] + ')')
@@ -143,7 +143,7 @@ class pyparsing_test:
         ):
             """
             Convenience wrapper assert to test a parser element and input string, and assert that
-            the resulting ``ParseResults.asList()`` is equal to the ``expected_list``.
+            the resulting ``ParseResults.as_list()`` is equal to the ``expected_list``.
             """
             result = expr.parse_string(test_string, parse_all=True)
             if verbose:
@@ -157,7 +157,7 @@ class pyparsing_test:
         ):
             """
             Convenience wrapper assert to test a parser element and input string, and assert that
-            the resulting ``ParseResults.asDict()`` is equal to the ``expected_dict``.
+            the resulting ``ParseResults.as_dict()`` is equal to the ``expected_dict``.
             """
             result = expr.parse_string(test_string, parseAll=True)
             if verbose:
@@ -170,12 +170,12 @@ class pyparsing_test:
             self, run_tests_report, expected_parse_results=None, msg=None
         ):
             """
-            Unit test assertion to evaluate output of ``ParserElement.runTests()``. If a list of
+            Unit test assertion to evaluate output of ``ParserElement.run_tests()``. If a list of
             list-dict tuples is given as the ``expected_parse_results`` argument, then these are zipped
-            with the report tuples returned by ``runTests`` and evaluated using ``assertParseResultsEquals``.
-            Finally, asserts that the overall ``runTests()`` success value is ``True``.
+            with the report tuples returned by ``run_tests`` and evaluated using ``assertParseResultsEquals``.
+            Finally, asserts that the overall ``run_tests()`` success value is ``True``.
 
-            :param run_tests_report: tuple(bool, [tuple(str, ParseResults or Exception)]) returned from runTests
+            :param run_tests_report: tuple(bool, [tuple(str, ParseResults or Exception)]) returned from run_tests
             :param expected_parse_results (optional): [tuple(str, list, dict, Exception)]
             """
             run_test_success, run_test_results = run_tests_report

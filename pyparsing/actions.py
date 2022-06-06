@@ -181,7 +181,7 @@ def with_class(classname, namespace=""):
         for grid_header in grid_expr.search_string(html):
             print(grid_header.body)
 
-        div_any_type = div().set_parse_action(with_class(withAttribute.ANY_VALUE))
+        div_any_type = div().set_parse_action(with_class(with_attribute.ANY_VALUE))
         div_expr = div_any_type + SkipTo(div | div_end)("body")
         for div_header in div_expr.search_string(html):
             print(div_header.body)
