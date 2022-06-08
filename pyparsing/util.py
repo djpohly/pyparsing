@@ -4,9 +4,10 @@ import types
 import collections
 import itertools
 from functools import lru_cache
-from typing import List, Union, Iterable
+from typing import List, Union, Iterable, Callable, TypeVar, cast
 
 _bslash = chr(92)
+T = TypeVar("T", bound=Callable)
 
 
 class __config_flags:
@@ -227,3 +228,59 @@ def _flatten(ll: list) -> list:
         else:
             ret.append(i)
     return ret
+
+
+def _duplicate_function(fn: T, name: str = "", context: str = "") -> T:
+    wrapper = types.FunctionType(
+        fn.__code__,
+        fn.__globals__,
+        name or fn.__name__,
+        fn.__defaults__,
+        fn.__closure__,
+    )
+    wrapper.__kwdefaults__ = fn.__kwdefaults__
+    #wrapper.__annotations__ = fn.__annotations__
+    if context:
+        wrapper.__qualname__ = f"{context}.{name}"
+    return cast(T, wrapper)
+
+
+def pep8_function_alias(name: str, wrapped: T) -> T:
+    if not isinstance(wrapped, types.FunctionType):
+        return wrapped
+    wrapper = _duplicate_function(wrapped, name)
+    wrapper.__doc__ = f"Deprecated pre-PEP8 alias for :func:`{wrapped.__name__}`."
+    return cast(T, wrapper)
+
+
+class _PEP8MethodAlias:
+    def __init__(self, method):
+        self.method = method
+
+    def __set_name__(self, owner, name):
+        method = self.method
+        if isinstance(method, (classmethod, staticmethod)):
+            # Unwrap the function inside a classmethod/staticmethod
+            fn = method.__wrapped__
+        else:
+            fn = method
+
+        if not isinstance(fn, types.FunctionType):
+            # If we're not dealing with an actual function, pass the original
+            # through unmodified
+            setattr(owner, name, method)
+            return
+
+        dup = _duplicate_function(fn)
+        dup.__doc__ = f"Deprecated pre-PEP8 alias for :meth:`{method.__name__}`."
+        # Re-wrap classmethod/staticmethod
+        if isinstance(method, (classmethod, staticmethod)):
+            dup = type(method)(dup)
+        # Replace this object with the wrapper itself
+        setattr(owner, name, dup)
+
+
+def pep8_method_alias(wrapped: T) -> T:
+    if not isinstance(wrapped, (types.FunctionType, classmethod, staticmethod)):
+        return wrapped
+    return cast(T, _PEP8MethodAlias(wrapped))

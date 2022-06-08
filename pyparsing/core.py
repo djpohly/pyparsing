@@ -40,6 +40,8 @@ from .util import (
     _flatten,
     LRUMemo as _LRUMemo,
     UnboundedMemo as _UnboundedMemo,
+    pep8_function_alias,
+    pep8_method_alias,
 )
 from .exceptions import *
 from .actions import *
@@ -2182,33 +2184,34 @@ class ParserElement(ABC):
             # we were passed a file-like object, just write to it
             output_html.write(railroad_to_html(railroad, embed=embed))
 
-    setDefaultWhitespaceChars = set_default_whitespace_chars
-    inlineLiteralsUsing = inline_literals_using
-    setResultsName = set_results_name
-    setBreak = set_break
-    setParseAction = set_parse_action
-    addParseAction = add_parse_action
-    addCondition = add_condition
-    setFailAction = set_fail_action
-    tryParse = try_parse
-    canParseNext = can_parse_next
-    resetCache = reset_cache
-    enableLeftRecursion = enable_left_recursion
-    enablePackrat = enable_packrat
-    parseString = parse_string
-    scanString = scan_string
-    searchString = search_string
-    transformString = transform_string
-    setWhitespaceChars = set_whitespace_chars
-    parseWithTabs = parse_with_tabs
-    setDebugActions = set_debug_actions
-    setDebug = set_debug
+    setDefaultWhitespaceChars = pep8_method_alias(set_default_whitespace_chars)
+    inlineLiteralsUsing = pep8_method_alias(inline_literals_using)
+    setResultsName = pep8_method_alias(set_results_name)
+    setBreak = pep8_method_alias(set_break)
+    setParseAction = pep8_method_alias(set_parse_action)
+    addParseAction = pep8_method_alias(add_parse_action)
+    addCondition = pep8_method_alias(add_condition)
+    setFailAction = pep8_method_alias(set_fail_action)
+    tryParse = pep8_method_alias(try_parse)
+    canParseNext = pep8_method_alias(can_parse_next)
+    resetCache = pep8_method_alias(reset_cache)
+    enableLeftRecursion = pep8_method_alias(enable_left_recursion)
+    enablePackrat = pep8_method_alias(enable_packrat)
+    parseString = pep8_method_alias(parse_string)
+    scanString = pep8_method_alias(scan_string)
+    searchString = pep8_method_alias(search_string)
+    transformString = pep8_method_alias(transform_string)
+    setWhitespaceChars = pep8_method_alias(set_whitespace_chars)
+    parseWithTabs = pep8_method_alias(parse_with_tabs)
+    setDebugActions = pep8_method_alias(set_debug_actions)
+    setDebug = pep8_method_alias(set_debug)
+    setName = pep8_method_alias(set_name)
+    parseFile = pep8_method_alias(parse_file)
+    runTests = pep8_method_alias(run_tests)
+    ignoreWhitespace = pep8_method_alias(ignore_whitespace)
+    leaveWhitespace = pep8_method_alias(leave_whitespace)
+    # This is a property, not a method
     defaultName = default_name
-    setName = set_name
-    parseFile = parse_file
-    runTests = run_tests
-    ignoreWhitespace = ignore_whitespace
-    leaveWhitespace = leave_whitespace
 
 
 class _PendingSkip(ParserElement):
@@ -2460,7 +2463,7 @@ class Keyword(Token):
         """
         Keyword.DEFAULT_KEYWORD_CHARS = chars
 
-    setDefaultKeywordChars = set_default_keyword_chars
+    setDefaultKeywordChars = pep8_method_alias(set_default_keyword_chars)
 
 
 class CaselessLiteral(Literal):
@@ -3725,8 +3728,8 @@ class ParseExpression(ParserElement):
 
         return super()._setResultsName(name, listAllMatches)
 
-    ignoreWhitespace = ignore_whitespace
-    leaveWhitespace = leave_whitespace
+    ignoreWhitespace = pep8_method_alias(ignore_whitespace)
+    leaveWhitespace = pep8_method_alias(leave_whitespace)
 
 
 class And(ParseExpression):
@@ -4408,8 +4411,8 @@ class ParseElementEnhance(ParserElement):
     def _generateDefaultName(self) -> str:
         return f"{self.__class__.__name__}:({str(self.expr)})"
 
-    ignoreWhitespace = ignore_whitespace
-    leaveWhitespace = leave_whitespace
+    ignoreWhitespace = pep8_method_alias(ignore_whitespace)
+    leaveWhitespace = pep8_method_alias(leave_whitespace)
 
 
 class IndentedBlock(ParseElementEnhance):
@@ -5334,8 +5337,8 @@ class Forward(ParseElementEnhance):
 
         return super()._setResultsName(name, list_all_matches)
 
-    ignoreWhitespace = ignore_whitespace
-    leaveWhitespace = leave_whitespace
+    ignoreWhitespace = pep8_method_alias(ignore_whitespace)
+    leaveWhitespace = pep8_method_alias(leave_whitespace)
 
 
 class TokenConverter(ParseElementEnhance):
@@ -5776,9 +5779,10 @@ _builtin_exprs: List[ParserElement] = [
 ]
 
 # backward compatibility names
-tokenMap = token_map
-conditionAsParseAction = condition_as_parse_action
-nullDebugAction = null_debug_action
+tokenMap = pep8_function_alias("tokenMap", token_map)
+conditionAsParseAction = pep8_function_alias("conditionAsParseAction", condition_as_parse_action)
+nullDebugAction = pep8_function_alias("nullDebugAction", null_debug_action)
+traceParseAction = pep8_function_alias("traceParseAction", trace_parse_action)
 sglQuotedString = sgl_quoted_string
 dblQuotedString = dbl_quoted_string
 quotedString = quoted_string
@@ -5787,4 +5791,3 @@ lineStart = line_start
 lineEnd = line_end
 stringStart = string_start
 stringEnd = string_end
-traceParseAction = trace_parse_action
