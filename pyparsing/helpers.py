@@ -5,7 +5,7 @@ import typing
 
 from . import __diag__
 from .core import *
-from .util import _bslash, _flatten, _escape_regex_range_chars
+from .util import _bslash, _flatten, _escape_regex_range_chars, pep8_function_alias
 
 
 #
@@ -1067,25 +1067,25 @@ _builtin_exprs: List[ParserElement] = [
 
 
 # pre-PEP8 compatible names
-delimitedList = delimited_list
-countedArray = counted_array
-matchPreviousLiteral = match_previous_literal
-matchPreviousExpr = match_previous_expr
-oneOf = one_of
-dictOf = dict_of
-originalTextFor = original_text_for
-nestedExpr = nested_expr
-makeHTMLTags = make_html_tags
-makeXMLTags = make_xml_tags
+delimitedList = pep8_function_alias("delimitedList", delimited_list)
+countedArray = pep8_function_alias("countedArray", counted_array)
+matchPreviousLiteral = pep8_function_alias("matchPreviousLiteral", match_previous_literal)
+matchPreviousExpr = pep8_function_alias("matchPreviousExpr", match_previous_expr)
+oneOf = pep8_function_alias("oneOf", one_of)
+dictOf = pep8_function_alias("dictOf", dict_of)
+originalTextFor = pep8_function_alias("originalTextFor", original_text_for)
+nestedExpr = pep8_function_alias("nestedExpr", nested_expr)
+makeHTMLTags = pep8_function_alias("makeHTMLTags", make_html_tags)
+makeXMLTags = pep8_function_alias("makeXMLTags", make_xml_tags)
 anyOpenTag, anyCloseTag = any_open_tag, any_close_tag
 commonHTMLEntity = common_html_entity
-replaceHTMLEntity = replace_html_entity
+replaceHTMLEntity = pep8_function_alias("replaceHTMLEntity", replace_html_entity)
 opAssoc = OpAssoc
-infixNotation = infix_notation
+infixNotation = pep8_function_alias("infixNotation", infix_notation)
 cStyleComment = c_style_comment
 htmlComment = html_comment
-restOfLine = rest_of_line
-dblSlashComment = dbl_slash_comment
-cppStyleComment = cpp_style_comment
-javaStyleComment = java_style_comment
-pythonStyleComment = python_style_comment
+restOfLine =  rest_of_line
+dblSlashComment =  dbl_slash_comment
+cppStyleComment =  cpp_style_comment
+javaStyleComment =  java_style_comment
+pythonStyleComment =  python_style_comment

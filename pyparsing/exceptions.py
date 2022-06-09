@@ -4,7 +4,7 @@ import re
 import sys
 import typing
 
-from .util import col, line, lineno, _collapse_string_to_ranges
+from .util import col, line, lineno, _collapse_string_to_ranges, pep8_method_alias
 from .unicode import pyparsing_unicode as ppu
 
 
@@ -210,7 +210,7 @@ class ParseBaseException(Exception):
         """
         return self.explain_exception(self, depth)
 
-    markInputline = mark_input_line
+    markInputline = pep8_method_alias(mark_input_line)
 
 
 class ParseException(ParseBaseException):

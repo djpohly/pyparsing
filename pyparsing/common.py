@@ -1,6 +1,7 @@
 # common.py
 from .core import *
 from .helpers import delimited_list, any_open_tag, any_close_tag
+from .util import pep8_method_alias
 from datetime import datetime
 
 
@@ -151,15 +152,19 @@ class pyparsing_common:
         [UUID('12345678-1234-5678-1234-567812345678')]
     """
 
-    convert_to_integer = token_map(int)
-    """
-    Parse action for converting parsed integers to Python int
-    """
+    @staticmethod
+    def convert_to_integer(s, l, t):
+        """
+        Parse action for converting parsed integers to Python int
+        """
+        return token_map(int)(s, l, t)
 
-    convert_to_float = token_map(float)
-    """
-    Parse action for converting parsed numbers to Python float
-    """
+    @staticmethod
+    def convert_to_float(s, l, t):
+        """
+        Parse action for converting parsed numbers to Python float
+        """
+        return token_map(float)(s, l, t)
 
     integer = Word(nums).set_name("integer").set_parse_action(convert_to_integer)
     """expression that parses an unsigned integer, returns an int"""
@@ -353,11 +358,15 @@ class pyparsing_common:
     ).set_name("comma separated list")
     """Predefined expression of 1 or more printable words or quoted strings, separated by commas."""
 
-    upcase_tokens = staticmethod(token_map(lambda t: t.upper()))
-    """Parse action to convert tokens to upper case."""
+    @staticmethod
+    def upcase_tokens(s, l, t):
+        """Parse action to convert tokens to upper case."""
+        return token_map(lambda t: t.upper())(s, l, t)
 
-    downcase_tokens = staticmethod(token_map(lambda t: t.lower()))
-    """Parse action to convert tokens to lower case."""
+    @staticmethod
+    def downcase_tokens(s, l, t):
+        """Parse action to convert tokens to lower case."""
+        return token_map(lambda t: t.lower())(s, l, t)
 
     # fmt: off
     url = Regex(
@@ -410,13 +419,13 @@ class pyparsing_common:
     # fmt: on
 
     # pre-PEP8 compatibility names
-    convertToInteger = convert_to_integer
-    convertToFloat = convert_to_float
-    convertToDate = convert_to_date
-    convertToDatetime = convert_to_datetime
-    stripHTMLTags = strip_html_tags
-    upcaseTokens = upcase_tokens
-    downcaseTokens = downcase_tokens
+    convertToInteger = pep8_method_alias(convert_to_integer)
+    convertToFloat = pep8_method_alias(convert_to_float)
+    convertToDate = pep8_method_alias(convert_to_date)
+    convertToDatetime = pep8_method_alias(convert_to_datetime)
+    stripHTMLTags = pep8_method_alias(strip_html_tags)
+    upcaseTokens = pep8_method_alias(upcase_tokens)
+    downcaseTokens = pep8_method_alias(downcase_tokens)
 
 
 _builtin_exprs = [

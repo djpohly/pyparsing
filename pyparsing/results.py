@@ -1,4 +1,5 @@
 # results.py
+from .util import pep8_method_alias
 from collections.abc import MutableMapping, Mapping, MutableSequence, Iterator
 import pprint
 from weakref import ref as wkref
@@ -748,9 +749,9 @@ class ParseResults:
             ret = cls([ret], name=name)
         return ret
 
-    asList = as_list
-    asDict = as_dict
-    getName = get_name
+    asList = pep8_method_alias(as_list)
+    asDict = pep8_method_alias(as_dict)
+    getName = pep8_method_alias(get_name)
 
 
 MutableMapping.register(ParseResults)
