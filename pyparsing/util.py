@@ -264,7 +264,9 @@ def _duplicate_function(fn: T, name: str = "", context: str = "") -> T:
     wrapper.__kwdefaults__ = fn.__kwdefaults__
     #wrapper.__annotations__ = fn.__annotations__
     if context:
-        wrapper.__qualname__ = f"{context}.{name}"
+        wrapper.__qualname__ = f"{context}.{wrapper.__name__}"
+    else:
+        wrapper.__qualname__ = wrapper.__name__
     return cast(T, wrapper)
 
 
@@ -283,8 +285,8 @@ class _PEP8MethodAlias:
     def __set_name__(self, owner, name):
         method = self.method
         if isinstance(method, (classmethod, staticmethod)):
-            # Unwrap the function inside a classmethod/staticmethod
-            fn = method.__wrapped__
+            # Unwrap the function inside the descriptor
+            fn = method.__get__(None, owner)
         else:
             fn = method
 
@@ -295,7 +297,7 @@ class _PEP8MethodAlias:
             return
 
         dup = _duplicate_function(fn)
-        dup.__doc__ = f"Deprecated pre-PEP8 alias for :meth:`{method.__name__}`."
+        dup.__doc__ = f"Deprecated pre-PEP8 alias for :meth:`{fn.__name__}`."
         # Re-wrap classmethod/staticmethod
         if isinstance(method, (classmethod, staticmethod)):
             dup = type(method)(dup)
