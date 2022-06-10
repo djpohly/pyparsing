@@ -231,6 +231,29 @@ def _flatten(ll: list) -> list:
 
 
 def _duplicate_function(fn: T, name: str = "", context: str = "") -> T:
+    """
+    Creates a new function object as a "shallow copy" of an existing function.
+    The new object refers to the existing code but can be given different
+    attributes.
+
+    Example::
+
+        def foo():
+            print("hello")
+        bar = _duplicate_function(foo, "baz")
+
+        print(bar)
+        print(bar is foo)
+        print(bar.__code__ is foo.__code__)
+        bar()
+
+    prints::
+
+        <function baz at 0x7f5dfe8f3640>
+        False
+        True
+        hello
+    """
     wrapper = types.FunctionType(
         fn.__code__,
         fn.__globals__,
