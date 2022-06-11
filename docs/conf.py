@@ -184,3 +184,13 @@ epub_exclude_files = ["search.html"]
 
 
 # -- Extension configuration -------------------------------------------------
+def trim_alias(app, what, name, obj, options, lines):
+    if not lines:
+        return
+    first = lines[0]
+    if first.startswith("Deprecated pre-PEP8 alias for"):
+        lines.clear()
+        lines.append(first)
+
+def setup(app):
+    app.connect("autodoc-process-docstring", trim_alias)

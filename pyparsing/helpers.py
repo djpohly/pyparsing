@@ -422,7 +422,8 @@ def ungroup(expr: ParserElement) -> ParserElement:
 
 def locatedExpr(expr: ParserElement) -> ParserElement:
     """
-    (DEPRECATED - future code should use the Located class)
+    Deprecated pre-PEP8 alias for :class:`Located`.
+
     Helper to decorate a returned token with its starting and ending
     locations in the input string.
 
@@ -893,7 +894,8 @@ def infix_notation(
 
 def indentedBlock(blockStatementExpr, indentStack, indent=True, backup_stacks=[]):
     """
-    (DEPRECATED - use IndentedBlock class instead)
+    Deprecated pre-PEP8 alias for :class:`IndentedBlock`.
+
     Helper method for defining space-delimited indentation blocks,
     such as those used to define block statements in Python source code.
 

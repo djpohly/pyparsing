@@ -1,7 +1,7 @@
 # actions.py
 
 from .exceptions import ParseException
-from .util import col
+from .util import col, pep8_function_alias
 
 
 class OnlyOnce:
@@ -198,8 +198,8 @@ def with_class(classname, namespace=""):
 
 
 # pre-PEP8 compatibility symbols
-replaceWith = replace_with
-removeQuotes = remove_quotes
-withAttribute = with_attribute
-withClass = with_class
-matchOnlyAtCol = match_only_at_col
+replaceWith = pep8_function_alias("replaceWith", replace_with)
+removeQuotes = pep8_function_alias("removeQuotes", remove_quotes)
+withAttribute = pep8_function_alias("withAttribute", with_attribute)
+withClass = pep8_function_alias("withClass", with_class)
+matchOnlyAtCol = pep8_function_alias("matchOnlyAtCol", match_only_at_col)

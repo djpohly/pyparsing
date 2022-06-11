@@ -3,6 +3,7 @@ import warnings
 import types
 import collections
 import itertools
+import inspect
 from functools import lru_cache
 from typing import List, Union, Iterable, Callable, TypeVar, cast
 
@@ -274,15 +275,23 @@ def pep8_function_alias(name: str, wrapped: T) -> T:
     if not isinstance(wrapped, types.FunctionType):
         return wrapped
     wrapper = _duplicate_function(wrapped, name)
-    wrapper.__doc__ = f"Deprecated pre-PEP8 alias for :func:`{wrapped.__name__}`."
+    wrapper.__doc__ = (
+        f"Deprecated pre-PEP8 alias for :func:`{wrapped.__name__}`.\n\n"
+        + (inspect.getdoc(wrapped) or "")
+    )
+    # This wrapper should work the same way as the original, so use a cast to
+    # help out static type checkers.
     return cast(T, wrapper)
 
 
 class _PEP8MethodAlias:
-    def __init__(self, method):
+    def __init__(self, method: object):
         self.method = method
 
-    def __set_name__(self, owner, name):
+    def __set_name__(self, owner: type[object], name: str):
+        wrapper: Union[classmethod, staticmethod, types.FunctionType]
+        fn: object
+
         method = self.method
         if isinstance(method, (classmethod, staticmethod)):
             # Unwrap the function inside the descriptor
@@ -296,16 +305,21 @@ class _PEP8MethodAlias:
             setattr(owner, name, method)
             return
 
-        dup = _duplicate_function(fn)
-        dup.__doc__ = f"Deprecated pre-PEP8 alias for :meth:`{fn.__name__}`."
+        wrapper = _duplicate_function(fn)
+        wrapper.__doc__ = (
+            f"Deprecated pre-PEP8 alias for :meth:`{fn.__name__}`.\n\n"
+            + (inspect.getdoc(fn) or "")
+        )
         # Re-wrap classmethod/staticmethod
         if isinstance(method, (classmethod, staticmethod)):
-            dup = type(method)(dup)
+            wrapper = type(method)(wrapper)
         # Replace this object with the wrapper itself
-        setattr(owner, name, dup)
+        setattr(owner, name, wrapper)
 
 
 def pep8_method_alias(wrapped: T) -> T:
     if not isinstance(wrapped, (types.FunctionType, classmethod, staticmethod)):
         return wrapped
+    # This object will be replaced with an equivalent wrapper, so use a cast to
+    # help out static type checkers.
     return cast(T, _PEP8MethodAlias(wrapped))
