@@ -407,6 +407,7 @@ class pyparsing_common:
         r"(#(?P<fragment>\S*))?" +
         r"$"
     ).set_name("url")
+    """Predefined expression to match a URL."""
     # fmt: on
 
     # pre-PEP8 compatibility names

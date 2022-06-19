@@ -30,7 +30,7 @@ class ParseResults:
 
     - as a list (``len(results)``)
     - by list index (``results[0], results[1]``, etc.)
-    - by attribute (``results.<results_name>`` - see :class:`ParserElement.set_results_name`)
+    - by attribute (``results.<results_name>`` - see :meth:`.ParserElement.set_results_name`)
 
     Example::
 
@@ -118,7 +118,7 @@ class ParseResults:
             [[2, 1],3,4]
             ([[2, 1], 3, 4], <class 'list'>)
 
-        (Used internally by :class:`Group` when `aslist=True`.)
+        (Used internally by :class:`.Group` when `aslist=True`.)
         """
 
         def __new__(cls, contained=None):

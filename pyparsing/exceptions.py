@@ -252,7 +252,7 @@ class ParseFatalException(ParseBaseException):
 class ParseSyntaxException(ParseFatalException):
     """
     Just like :class:`ParseFatalException`, but thrown internally
-    when an :class:`ErrorStop<And._ErrorStop>` ('-' operator) indicates
+    when an ``ErrorStop`` ('-' operator, see :class:`.And`) indicates
     that parsing is to stop immediately because an unbacktrackable
     syntax error has been found.
     """
@@ -260,9 +260,9 @@ class ParseSyntaxException(ParseFatalException):
 
 class RecursiveGrammarException(Exception):
     """
-    Exception thrown by :class:`ParserElement.validate` if the
+    Exception thrown by :meth:`.ParserElement.validate` if the
     grammar could be left-recursive; parser may need to enable
-    left recursion using :class:`ParserElement.enable_left_recursion<ParserElement.enable_left_recursion>`
+    left recursion using :meth:`.ParserElement.enable_left_recursion`
     """
 
     def __init__(self, parseElementList):

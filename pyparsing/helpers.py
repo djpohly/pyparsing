@@ -212,7 +212,7 @@ def one_of(
     """Helper to quickly define a set of alternative :class:`Literal` s,
     and makes sure to do longest-first testing when there is a conflict,
     regardless of the input order, but returns
-    a :class:`MatchFirst` for best performance.
+    a :class:`.MatchFirst` for best performance.
 
     Parameters:
 
@@ -220,10 +220,10 @@ def one_of(
       string literals
     - ``caseless`` - treat all literals as caseless - (default= ``False``)
     - ``use_regex`` - as an optimization, will
-      generate a :class:`Regex` object; otherwise, will generate
-      a :class:`MatchFirst` object (if ``caseless=True`` or ``as_keyword=True``, or if
-      creating a :class:`Regex` raises an exception) - (default= ``True``)
-    - ``as_keyword`` - enforce :class:`Keyword`-style matching on the
+      generate a :class:`.Regex` object; otherwise, will generate
+      a :class:`.MatchFirst` object (if ``caseless=True`` or ``as_keyword=True``, or if
+      creating a :class:`.Regex` raises an exception) - (default= ``True``)
+    - ``as_keyword`` - enforce :class:`.Keyword`-style matching on the
       generated expressions - (default= ``False``)
     - ``asKeyword`` and ``useRegex`` are retained for pre-PEP8 compatibility,
       but will be removed in a future release
@@ -328,8 +328,8 @@ def one_of(
 def dict_of(key: ParserElement, value: ParserElement) -> ParserElement:
     """Helper to easily and clearly define a dictionary by specifying
     the respective patterns for the key and value.  Takes care of
-    defining the :class:`Dict`, :class:`ZeroOrMore`, and
-    :class:`Group` tokens in the proper order.  The key pattern
+    defining the :class:`Dict`, :class:`.ZeroOrMore`, and
+    :class:`.Group` tokens in the proper order.  The key pattern
     can include delimiting markers or punctuation, as long as they are
     suppressed, thereby leaving the significant key text.  The value
     pattern can include named results, so that the :class:`Dict` results
@@ -376,10 +376,10 @@ def original_text_for(
 
     If the optional ``as_string`` argument is passed as
     ``False``, then the return value is
-    a :class:`ParseResults` containing any results names that
+    a :class:`.ParseResults` containing any results names that
     were originally matched, and a single token containing the original
     matched text from the input string.  So if the expression passed to
-    :class:`original_text_for` contains expressions with defined
+    :func:`original_text_for` contains expressions with defined
     results names, you must set ``as_string`` to ``False`` if you
     want to preserve those results name values.
 
@@ -438,7 +438,7 @@ def locatedExpr(expr: ParserElement) -> ParserElement:
     - ``value`` - the actual parsed results
 
     Be careful if the input text contains ``<TAB>`` characters, you
-    may want to call :class:`ParserElement.parse_with_tabs`
+    may want to call :meth:`.ParserElement.parse_with_tabs`
 
     Example::
 
@@ -480,7 +480,7 @@ def nested_expr(
     - ``content`` - expression for items within the nested lists
       (default= ``None``)
     - ``ignore_expr`` - expression for ignoring opening and closing delimiters
-      (default= :class:`quoted_string`)
+      (default= :data:`.quoted_string`)
     - ``ignoreExpr`` - this pre-PEP8 argument is retained for compatibility
       but will be removed in a future release
 
@@ -492,8 +492,8 @@ def nested_expr(
     contain opening or closing characters that should not be treated as
     opening or closing characters for nesting, such as quoted_string or
     a comment expression.  Specify multiple expressions using an
-    :class:`Or` or :class:`MatchFirst`. The default is
-    :class:`quoted_string`, but if no expressions are to be ignored, then
+    :class:`.Or` or :class:`.MatchFirst`. The default is
+    :data:`.quoted_string`, but if no expressions are to be ignored, then
     pass ``None`` for this argument.
 
     Example::
@@ -680,7 +680,7 @@ def make_xml_tags(
     """Helper to construct opening and closing tag expressions for XML,
     given a tag name. Matches tags only in the given upper/lower case.
 
-    Example: similar to :class:`make_html_tags`
+    Example: similar to :func:`make_html_tags`
     """
     return _makeTags(tag_str, True)
 
@@ -743,7 +743,7 @@ def infix_notation(
 
     Note: if you define a deep operator list, you may see performance
     issues when using infix_notation. See
-    :class:`ParserElement.enable_packrat` for a mechanism to potentially
+    :meth:`.ParserElement.enable_packrat` for a mechanism to potentially
     improve your parser performance.
 
     Parameters:
@@ -768,7 +768,7 @@ def infix_notation(
         tuple member may be omitted); if the parse action is passed
         a tuple or list of functions, this is equivalent to calling
         ``set_parse_action(*fn)``
-        (:class:`ParserElement.set_parse_action`)
+        (:meth:`.ParserElement.set_parse_action`)
     - ``lpar`` - expression for matching left-parentheses; if passed as a
       str, then will be parsed as ``Suppress(lpar)``. If lpar is passed as
       an expression (such as ``Literal('(')``), then it will be kept in

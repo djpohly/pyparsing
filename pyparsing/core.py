@@ -148,13 +148,13 @@ class Diagnostics(Enum):
       defined in a grammar but has never had an expression attached to it
     - ``warn_on_assignment_to_Forward`` - flag to enable warnings when a :class:`Forward` is defined
       but is overwritten by assigning using ``'='`` instead of ``'<<='`` or ``'<<'``
-    - ``warn_on_multiple_string_args_to_oneof`` - flag to enable warnings when :class:`one_of` is
+    - ``warn_on_multiple_string_args_to_oneof`` - flag to enable warnings when :func:`.one_of` is
       incorrectly called with multiple str arguments
     - ``enable_debug_on_named_expressions`` - flag to auto-enable debug on all subsequent
-      calls to :class:`ParserElement.set_name`
+      calls to :meth:`ParserElement.set_name`
 
-    Diagnostics are enabled/disabled by calling :class:`enable_diag` and :class:`disable_diag`.
-    All warnings can be enabled by calling :class:`enable_all_warnings`.
+    Diagnostics are enabled/disabled by calling :func:`enable_diag` and :func:`disable_diag`.
+    All warnings can be enabled by calling :func:`enable_all_warnings`.
     """
 
     warn_multiple_tokens_in_named_alternation = 0
@@ -254,12 +254,19 @@ DebugExceptionAction = Callable[[str, int, "ParserElement", Exception, bool], No
 
 
 alphas = string.ascii_uppercase + string.ascii_lowercase
+"""String containing ASCII alphabetic characters"""
 identchars = pyparsing_unicode.Latin1.identchars
+"""String containing Latin-1 identifier characters"""
 identbodychars = pyparsing_unicode.Latin1.identbodychars
+"""String containing Latin-1 identifier body characters"""
 nums = "0123456789"
+"""String containing decimal digits"""
 hexnums = nums + "ABCDEFabcdef"
+"""String containing hexadecimal digits"""
 alphanums = alphas + nums
+"""String containing ASCII alphanumeric characters"""
 printables = "".join([c for c in string.printable if c not in string.whitespace])
+"""String containing all printable, non-whitespace ASCII characters"""
 
 _trim_arity_call_line: traceback.StackSummary = None  # type: ignore[assignment]
 
@@ -331,13 +338,13 @@ def condition_as_parse_action(
     Function to convert a simple predicate function that returns ``True`` or ``False``
     into a parse action. Can be used in places when a parse action is required
     and :class:`ParserElement.add_condition` cannot be used (such as when adding a condition
-    to an operator level in :class:`infix_notation`).
+    to an operator level in :func:`.infix_notation`).
 
     Optional keyword arguments:
 
     - ``message`` - define a custom message to be used in the raised exception
-    - ``fatal`` - if True, will raise :class:`ParseFatalException` to stop parsing immediately;
-      otherwise will raise :class:`ParseException`
+    - ``fatal`` - if True, will raise :class:`.ParseFatalException` to stop parsing immediately;
+      otherwise will raise :class:`.ParseException`
 
     """
     msg = message if message is not None else "failed user-defined condition"
@@ -598,7 +605,7 @@ class ParserElement(ABC):
 
         - ``s``    = the original string being parsed (see note below)
         - ``loc``  = the location of the matching substring
-        - ``toks`` = a list of the matched tokens, packaged as a :class:`ParseResults` object
+        - ``toks`` = a list of the matched tokens, packaged as a :class:`.ParseResults` object
 
         The parsed tokens are passed to the parse action as ParseResults. They can be
         modified in place using list-style append, extend, and pop operations to update
@@ -609,7 +616,7 @@ class ParserElement(ABC):
         Parse actions can also completely replace the given tokens, with another ``ParseResults``
         object, or with some entirely different object (common for parse actions that perform data
         conversions). A convenient way to build a new parse result is to define the values
-        using a dict, and then create the return value using :class:`ParseResults.from_dict`.
+        using a dict, and then create the return value using :meth:`.ParseResults.from_dict`.
 
         If None is passed as the ``fn`` parse action, all previously added parse actions for this
         expression are cleared.
@@ -731,7 +738,7 @@ class ParserElement(ABC):
         - ``expr`` = the parse expression that failed
         - ``err`` = the exception thrown
 
-        The function returns no value.  It may throw :class:`ParseFatalException`
+        The function returns no value.  It may throw :class:`.ParseFatalException`
         if it is desired to stop parsing immediately."""
         self.failAction = fn
         return self
@@ -1080,7 +1087,7 @@ class ParserElement(ABC):
         :param parse_all: If set, the entire input string must match the grammar.
         :param parseAll: retained for pre-PEP8 compatibility, will be removed in a future release.
         :raises ParseException: Raised if ``parse_all`` is set and the input string does not match the whole grammar.
-        :returns: the parsed data as a :class:`ParseResults` object, which may be accessed as a `list`, a `dict`, or
+        :returns: the parsed data as a :class:`.ParseResults` object, which may be accessed as a `list`, a `dict`, or
           an object with attributes if the given parser includes results names.
 
         If the input string is required to match the entire grammar, ``parse_all`` flag must be set to ``True``. This
@@ -1091,7 +1098,7 @@ class ParserElement(ABC):
         contains tabs and the grammar uses parse actions that use the ``loc`` argument to index into the string
         being parsed, one can ensure a consistent view of the input string by doing one of the following:
 
-        - calling ``parse_with_tabs`` on your grammar before calling ``parse_string`` (see :class:`parse_with_tabs`),
+        - calling ``parse_with_tabs`` on your grammar before calling ``parse_string`` (see :meth:`parse_with_tabs`),
         - define your parse action using the full ``(s,loc,toks)`` signature, and reference the input string using the
           parse action's ``s`` argument, or
         - explicitly expand the tabs in your input string before calling ``parse_string``.
@@ -1154,7 +1161,7 @@ class ParserElement(ABC):
         ``overlap`` is specified, then overlapping matches will be reported.
 
         Note that the start and end locations are reported relative to the string
-        being parsed.  See :class:`parse_string` for more information on parsing
+        being parsed.  See :meth:`parse_string` for more information on parsing
         strings with embedded tabs.
 
         Example::
@@ -2721,18 +2728,18 @@ class Word(Token):
 
     pyparsing includes helper strings for building Words:
 
-    - :class:`alphas`
-    - :class:`nums`
-    - :class:`alphanums`
-    - :class:`hexnums`
-    - :class:`alphas8bit` (alphabetic characters in ASCII range 128-255
+    - :data:`alphas`
+    - :data:`nums`
+    - :data:`alphanums`
+    - :data:`hexnums`
+    - :data:`alphas8bit` (alphabetic characters in ASCII range 128-255
       - accented, tilded, umlauted, etc.)
-    - :class:`punc8bit` (non-alphabetic characters in ASCII range
+    - :data:`punc8bit` (non-alphabetic characters in ASCII range
       128-255 - currency, symbols, superscripts, diacriticals, etc.)
-    - :class:`printables` (any non-whitespace character)
+    - :data:`printables` (any non-whitespace character)
 
     ``alphas``, ``nums``, and ``printables`` are also defined in several
-    Unicode sets - see :class:`pyparsing_unicode``.
+    Unicode sets - see :class:`.pyparsing_unicode`.
 
     Example::
 
@@ -2972,7 +2979,7 @@ class Regex(Token):
     expression. Defined with string specifying the regular expression in
     a form recognized by the stdlib Python  `re module <https://docs.python.org/3/library/re.html>`_.
     If the given regex contains named groups (defined using ``(?P<name>...)``),
-    these will be preserved as named :class:`ParseResults`.
+    these will be preserved as named :class:`.ParseResults`.
 
     If instead of the Python stdlib ``re`` module you wish to use a different RE module
     (such as the ``regex`` module), you can do so by building your ``Regex`` object with
@@ -5231,7 +5238,7 @@ class Forward(ParseElementEnhance):
 
     Converting to use the ``'<<='`` operator instead will avoid this problem.
 
-    See :class:`ParseResults.pprint` for an example of a recursive
+    See :meth:`.ParseResults.pprint` for an example of a recursive
     parser created using ``Forward``.
     """
 
@@ -5601,7 +5608,7 @@ class Dict(TokenConverter):
         SQUARE
         {'color': 'light blue', 'posn': 'upper left', 'texture': 'burlap', 'shape': 'SQUARE'}
 
-    See more examples at :class:`ParseResults` of accessing fields by results name.
+    See more examples at :class:`.ParseResults` of accessing fields by results name.
     """
 
     def __init__(self, expr: ParserElement, asdict: bool = False):
@@ -5677,7 +5684,7 @@ class Suppress(TokenConverter):
         ['a', 'b', 'c', 'd']
         ['START', 'relevant text ', 'END']
 
-    (See also :class:`delimited_list`.)
+    (See also :func:`.delimited_list`.)
     """
 
     def __init__(self, expr: Union[ParserElement, str], savelist: bool = False):
@@ -5816,13 +5823,13 @@ def srange(s: str) -> str:
 
 def token_map(func, *args) -> ParseAction:
     """Helper to define a parse action by mapping a function to all
-    elements of a :class:`ParseResults` list. If any additional args are passed,
+    elements of a :class:`.ParseResults` list. If any additional args are passed,
     they are forwarded to the given function as additional arguments
     after the token, as in
     ``hex_integer = Word(hexnums).set_parse_action(token_map(int, 16))``,
     which will convert the parsed data to an integer using base 16.
 
-    Example (compare the last to example in :class:`ParserElement.transform_string`::
+    Example (compare the last to example in :meth:`ParserElement.transform_string`)::
 
         hex_ints = Word(hexnums)[1, ...].set_parse_action(token_map(int, 16))
         hex_ints.run_tests('''
@@ -5873,21 +5880,27 @@ def autoname_elements() -> None:
 dbl_quoted_string = Combine(
     Regex(r'"(?:[^"\n\r\\]|(?:"")|(?:\\(?:[^x]|x[0-9a-fA-F]+)))*') + '"'
 ).set_name("string enclosed in double quotes")
+"""Convenience parser for a string enclosed in double quotes"""
 
 sgl_quoted_string = Combine(
     Regex(r"'(?:[^'\n\r\\]|(?:'')|(?:\\(?:[^x]|x[0-9a-fA-F]+)))*") + "'"
 ).set_name("string enclosed in single quotes")
+"""Convenience parser for a string enclosed in single quotes"""
 
 quoted_string = Combine(
     Regex(r'"(?:[^"\n\r\\]|(?:"")|(?:\\(?:[^x]|x[0-9a-fA-F]+)))*') + '"'
     | Regex(r"'(?:[^'\n\r\\]|(?:'')|(?:\\(?:[^x]|x[0-9a-fA-F]+)))*") + "'"
 ).set_name("quoted string using single or double quotes")
+"""Convenience parser for a string enclosed in single or double quotes"""
 
 unicode_string = Combine("u" + quoted_string.copy()).set_name("unicode string literal")
+"""Convenience parser for a quoted Unicode string literal"""
 
 
 alphas8bit = srange(r"[\0xc0-\0xd6\0xd8-\0xf6\0xf8-\0xff]")
+"""String containing alphabetic characters in ASCII range 128-255 - accented, tilded, umlauted, etc.)"""
 punc8bit = srange(r"[\0xa1-\0xbf\0xd7\0xf7]")
+"""String containing non-alphabetic characters in ASCII range 128-255 - currency, symbols, superscripts, diacritics, etc.)"""
 
 # build list of built-in expressions, for future reference if a global default value
 # gets updated

@@ -47,7 +47,7 @@ def replace_with(repl_str):
     """
     Helper method for common parse actions that simply return
     a literal value.  Especially useful when used with
-    :class:`transform_string<ParserElement.transform_string>` ().
+    :meth:`.transform_string`.
 
     Example::
 
@@ -80,8 +80,8 @@ def remove_quotes(s, l, t):
 def with_attribute(*args, **attr_dict):
     """
     Helper to create a validating parse action to be used with start
-    tags created with :class:`make_xml_tags` or
-    :class:`make_html_tags`. Use ``with_attribute`` to qualify
+    tags created with :func:`.make_xml_tags` or
+    :func:`.make_html_tags`. Use ``with_attribute`` to qualify
     a starting tag with a required attribute value, to avoid false
     matches on common tags such as ``<TD>`` or ``<DIV>``.
 
