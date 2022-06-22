@@ -6,6 +6,7 @@ import typing
 from typing import (
     Any,
     Callable,
+    ClassVar,
     Generator,
     List,
     NamedTuple,
@@ -474,6 +475,12 @@ class ParserElement(ABC):
         self.callPreparse = True
         self.callDuringTry = False
         self.suppress_warnings_: List[Diagnostics] = []
+
+    def __repr__(self):
+        return self._sub_repr()
+
+    def _sub_repr(self) -> str:
+        return f"{type(self).__name__}()"
 
     def suppress_warning(self, warning_type: Diagnostics) -> "ParserElement":
         """
@@ -1857,9 +1864,6 @@ class ParserElement(ABC):
     def __str__(self) -> str:
         return self.name
 
-    def __repr__(self) -> str:
-        return str(self)
-
     def streamline(self) -> "ParserElement":
         self.streamlined = True
         self._defaultName = None
@@ -2308,9 +2312,6 @@ class _PendingSkip(ParserElement):
 
         return self.anchor + skipper + other
 
-    def __repr__(self):
-        return self.defaultName
-
     def parseImpl(self, *args):
         raise Exception(
             "use of `...` expression without following SkipTo target expression"
@@ -2390,6 +2391,12 @@ class Literal(Token):
         obj.__dict__.update(self.__dict__)
         return obj
 
+    def __repr__(self):
+        return f"{type(self).__name__}({self.match!r})"
+
+    def _sub_repr(self) -> str:
+        return repr(self.match)
+
     def _generateDefaultName(self) -> str:
         return repr(self.match)
 
@@ -2411,6 +2418,9 @@ class Empty(Literal):
         self.mayReturnEmpty = True
         self.mayIndexError = False
 
+    def __repr__(self):
+        return "Empty()"
+
     def _generateDefaultName(self) -> str:
         return "Empty"
 
@@ -2419,6 +2429,9 @@ class Empty(Literal):
 
 
 class _SingleCharLiteral(Literal):
+    def __repr__(self):
+        return f"Literal({self.match!r})"
+
     def parseImpl(self, instring, loc, doActions=True):
         if instring[loc] == self.firstMatchChar:
             return loc + 1, self.match
@@ -2485,6 +2498,9 @@ class Keyword(Token):
             self.caselessmatch = match_string.upper()
             identChars = identChars.upper()
         self.identChars = set(identChars)
+
+    def _sub_repr(self) -> str:
+        return "Keyword({})".format(repr(self.match))
 
     def _generateDefaultName(self) -> str:
         return repr(self.match)
@@ -2566,6 +2582,9 @@ class CaselessLiteral(Literal):
         # Preserve the defining literal.
         self.returnString = match_string
         self.errmsg = "Expected " + self.name
+
+    def _sub_repr(self) -> str:
+        return f"CaselessLiteral({self.returnString!r})"
 
     def parseImpl(self, instring, loc, doActions=True):
         if instring[loc : loc + self.matchLen].upper() == self.match:
@@ -2652,6 +2671,9 @@ class CloseMatch(Token):
 
     def _generateDefaultName(self) -> str:
         return f"{type(self).__name__}:{self.match_string!r}"
+
+    def _sub_repr(self) -> str:
+        return f"{type(self).__name__}({self.match_string!r}, {self.maxMismatches})"
 
     def parseImpl(self, instring, loc, doActions=True):
         start = loc
@@ -2897,6 +2919,10 @@ class Word(Token):
                 return base + f"{{{self.minLen},{self.maxLen}}}"
         return base
 
+    def _sub_repr(self) -> str:
+        chars = "".join(sorted(self.initChars))
+        return f"{type(self).__name__}({chars!r})"
+
     def parseImpl(self, instring, loc, doActions=True):
         if instring[loc] not in self.initChars:
             raise ParseException(instring, loc, self.errmsg, self)
@@ -2931,6 +2957,10 @@ class Word(Token):
 
 
 class _WordRegex(Word):
+    def _sub_repr(self) -> str:
+        chars = "".join(sorted(self.initChars))
+        return f"Word({chars!r})"
+
     def parseImpl(self, instring, loc, doActions=True):
         result = self.re_match(instring, loc)
         if not result:
@@ -3055,6 +3085,9 @@ class Regex(Token):
     @cached_property
     def mayReturnEmpty(self):
         return self.re_match("") is not None
+
+    def _sub_repr(self) -> str:
+        return f"Regex({self.pattern!r})"
 
     def _generateDefaultName(self) -> str:
         return "Re:({})".format(repr(self.pattern).replace("\\\\", "\\"))
@@ -3276,6 +3309,11 @@ class QuotedString(Token):
 
         return f"quoted string, starting with {self.quoteChar} ending with {self.endQuoteChar}"
 
+    def _sub_repr(self) -> str:
+        if self.quoteChar == self.endQuoteChar and isinstance(self.quoteChar, str_type):
+            return f"QuotedString({self.quoteChar!r})"
+        return f"QuotedString({self.quoteChar!r}, end_quote_char={self.endQuoteChar!r})"
+
     def parseImpl(self, instring, loc, doActions=True):
         result = (
             instring[loc] == self.firstQuoteChar
@@ -3366,6 +3404,10 @@ class CharsNotIn(Token):
         self.mayReturnEmpty = self.minLen == 0
         self.mayIndexError = False
 
+    def _sub_repr(self) -> str:
+        not_chars = "".join(sorted(self.notCharsSet))
+        return f"NotChars({not_chars!r})"
+
     def _generateDefaultName(self) -> str:
         not_chars_str = _collapse_string_to_ranges(self.notChars)
         if len(not_chars_str) > 16:
@@ -3451,6 +3493,11 @@ class White(Token):
     def _generateDefaultName(self) -> str:
         return "".join(White.whiteStrs[c] for c in self.matchWhite)
 
+    def _sub_repr(self) -> str:
+        if self.matchWhite == " \t\r\n":
+            return f"{type(self).__name__}()"
+        return f"{type(self).__name__}({self.matchWhite!r})"
+
     def parseImpl(self, instring, loc, doActions=True):
         if instring[loc] not in self.matchWhite:
             raise ParseException(instring, loc, self.errmsg, self)
@@ -3482,6 +3529,9 @@ class GoToColumn(PositionToken):
     def __init__(self, colno: int):
         super().__init__()
         self.col = colno
+
+    def _sub_repr(self):
+        return f"{type(self).__name__}({self.col!r})"
 
     def preParse(self, instring: str, loc: int) -> int:
         if col(loc, instring) != self.col:
@@ -3628,6 +3678,12 @@ class WordStart(PositionToken):
         self.wordChars = set(wordChars)
         self.errmsg = "Not at the start of a word"
 
+    def _sub_repr(self):
+        if self.wordChars == set(printables):
+            return f"{type(self).__name__}()"
+        chars = "".join(sorted(self.wordChars))
+        return f"{type(self).__name__}({chars!r})"
+
     def parseImpl(self, instring, loc, doActions=True):
         if loc != 0:
             if (
@@ -3654,6 +3710,12 @@ class WordEnd(PositionToken):
         self.skipWhitespace = False
         self.errmsg = "Not at the end of a word"
 
+    def _sub_repr(self):
+        if self.wordChars == set(printables):
+            return f"{type(self).__name__}()"
+        chars = "".join(sorted(self.wordChars))
+        return f"{type(self).__name__}({chars!r})"
+
     def parseImpl(self, instring, loc, doActions=True):
         instrlen = len(instring)
         if instrlen > 0 and loc < instrlen:
@@ -3669,6 +3731,8 @@ class ParseExpression(ParserElement):
     """Abstract subclass of ParserElement, for combining and
     post-processing parsed tokens.
     """
+
+    OPERATOR: ClassVar[str] = ""
 
     def __init__(self, exprs: typing.Iterable[ParserElement], savelist: bool = False):
         super().__init__(savelist)
@@ -3695,6 +3759,15 @@ class ParseExpression(ParserElement):
             except TypeError:
                 self.exprs = [exprs]
         self.callPreparse = False
+
+    def _sub_repr(self) -> str:
+        op = f" {type(self).OPERATOR} "
+        if len(self.exprs) < 2:
+            elements = ", ".join(e._sub_repr() for e in self.exprs)
+            return f"{type(self).__name__}([{elements}])"
+        if all(isinstance(e, Literal) for e in self.exprs[:2]):
+            return f"({self.exprs[0]!r}" + op + op.join(e._sub_repr() for e in self.exprs[1:]) + ")"
+        return "(" + op.join(e._sub_repr() for e in self.exprs) + ")"
 
     def recurse(self) -> Sequence[ParserElement]:
         return self.exprs[:]
@@ -3850,6 +3923,8 @@ class And(ParseExpression):
         # more easily written as:
         expr = integer("id") + name_expr("name") + integer("age")
     """
+
+    OPERATOR = "+"
 
     class _ErrorStop(Empty):
         def __init__(self, *args, **kwargs):
@@ -4007,6 +4082,8 @@ class Or(ParseExpression):
         [['123'], ['3.1416'], ['789']]
     """
 
+    OPERATOR = "^"
+
     def __init__(self, exprs: typing.Iterable[ParserElement], savelist: bool = False):
         super().__init__(exprs, savelist)
         if self.exprs:
@@ -4162,6 +4239,8 @@ class MatchFirst(ParseExpression):
         print(number.search_string("123 3.1416 789")) #  Better -> [['123'], ['3.1416'], ['789']]
     """
 
+    OPERATOR = "|"
+
     def __init__(self, exprs: typing.Iterable[ParserElement], savelist: bool = False):
         super().__init__(exprs, savelist)
         if self.exprs:
@@ -4313,6 +4392,8 @@ class Each(ParseExpression):
         - size: 20
     """
 
+    OPERATOR = "&"
+
     def __init__(self, exprs: typing.Iterable[ParserElement], savelist: bool = True):
         super().__init__(exprs, savelist)
         if self.exprs:
@@ -4448,6 +4529,9 @@ class ParseElementEnhance(ParserElement):
             self.saveAsList = expr.saveAsList
             self.callPreparse = expr.callPreparse
             self.ignoreExprs.extend(expr.ignoreExprs)
+
+    def _sub_repr(self) -> str:
+        return f"{type(self).__name__}({self.expr._sub_repr()})"
 
     def recurse(self) -> Sequence[ParserElement]:
         return [self.expr] if self.expr is not None else []
@@ -4833,6 +4917,9 @@ class NotAny(ParseElementEnhance):
         self.mayReturnEmpty = True
         self.errmsg = "Found unwanted token, " + str(self.expr)
 
+    def _sub_repr(self) -> str:
+        return f"~{self.expr._sub_repr()}"
+
     def parseImpl(self, instring, loc, doActions=True):
         if self.expr.can_parse_next(instring, loc):
             raise ParseException(instring, loc, self.errmsg, self)
@@ -4947,6 +5034,8 @@ class OneOrMore(_MultipleMatch):
         # could also be written as
         (attr_expr * (1,)).parse_string(text).pprint()
     """
+    def _sub_repr(self) -> str:
+        return f"{self.expr!r}[1,...]"
 
     def _generateDefaultName(self) -> str:
         return "{" + str(self.expr) + "}..."
@@ -4975,6 +5064,9 @@ class ZeroOrMore(_MultipleMatch):
     ):
         super().__init__(expr, stopOn=stopOn or stop_on)
         self.mayReturnEmpty = True
+
+    def _sub_repr(self) -> str:
+        return f"{self.expr!r}[...]"
 
     def parseImpl(self, instring, loc, doActions=True):
         try:
@@ -5288,6 +5380,9 @@ class Forward(ParseElementEnhance):
                 filename=self.caller_frame.filename,
                 lineno=self.caller_frame.lineno,
             )
+
+    def _sub_repr(self):
+        return f"{type(self).__name__}()"
 
     def parseImpl(self, instring, loc, doActions=True):
         if (
