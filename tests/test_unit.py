@@ -347,16 +347,412 @@ class Test01c_ParseExpressionFormatting(TestCase):
         self.check_all(p, "WordEnd", "WordEnd('0123456789')")
 
     def testAnd(self):
-        pass
+        p = pp.And([])
+        self.check_all(
+            p,
+            "{}",
+            "And([])",
+        )
+
+        p = pp.And(["Hello"])
+        self.check_all(
+            p,
+            "{'Hello'}",
+            "And(['Hello'])",
+            "And([Literal('Hello')])",
+        )
+
+        p = pp.And([pp.Word("aeiou")])
+        self.check_all(
+            p,
+            "{W:(aeiou)}",
+            "And([Word('aeiou')])",
+        )
+
+        p = pp.And(["Hello", "world"])
+        self.check_all(
+            p,
+            "{'Hello' 'world'}",
+            "Literal('Hello') + 'world'",
+            "Literal('Hello') + Literal('world')",
+        )
+
+        p = pp.And(["Hello", pp.Word("aeiou")])
+        self.check_all(
+            p,
+            "{'Hello' W:(aeiou)}",
+            "Literal('Hello') + Word('aeiou')",
+            # or maybe in future:
+            #"'Hello' + Word('aeiou')",
+            #"Literal('Hello') + Word('aeiou')",
+        )
+
+        p = pp.And([pp.Word("aeiou"), "Hello"])
+        self.check_all(
+            p,
+            "{W:(aeiou) 'Hello'}",
+            "Word('aeiou') + 'Hello'",
+            "Word('aeiou') + Literal('Hello')",
+        )
+
+        p = pp.And([pp.Word("aeiou"), pp.Word("AEIOU")])
+        self.check_all(
+            p,
+            "{W:(aeiou) W:(AEIOU)}",
+            "Word('aeiou') + Word('AEIOU')",
+        )
+
+        p = pp.And([pp.MatchFirst(["Hello", "there"]), "Hi"])
+        self.check_all(
+            p,
+            "{{'Hello' | 'there'} 'Hi'}",
+            "(Literal('Hello') | 'there') + 'Hi'",
+            "(Literal('Hello') | Literal('there')) + Literal('Hi')",
+        )
+
+        p = pp.And(["Hello", pp.MatchFirst(["Hi", "there"])])
+        self.check_all(
+            p,
+            "{'Hello' {'Hi' | 'there'}}",
+            "Literal('Hello') + (Literal('Hi') | 'there')",
+            # or maybe in future:
+            #"'Hello' + (Literal('Hi') | 'there')",
+            "Literal('Hello') + (Literal('Hi') | Literal('there'))",
+        )
+
+        p = pp.And(["Hello", "Hi", "Greetings"])
+        self.check_all(
+            p,
+            "{'Hello' 'Hi' 'Greetings'}",
+            "Literal('Hello') + 'Hi' + 'Greetings'",
+            "Literal('Hello') + Literal('Hi') + Literal('Greetings')",
+        )
+
+        p = pp.And(["Hello", pp.MatchFirst(["Hi", "there"]), pp.Word("aeiou")])
+        self.check_all(
+            p,
+            "{'Hello' {'Hi' | 'there'} W:(aeiou)}",
+            "Literal('Hello') + (Literal('Hi') | 'there') + Word('aeiou')",
+            # or maybe in future:
+            #"'Hello' + (Literal('Hi') | 'there') + Word('aeiou')",
+            "Literal('Hello') + (Literal('Hi') | Literal('there')) + Word('aeiou')",
+        )
+
+        p = pp.And(["Hello", pp.Word("aeiou"), pp.MatchFirst(["Hi", "there"])])
+        self.check_all(
+            p,
+            "{'Hello' W:(aeiou) {'Hi' | 'there'}}",
+            "Literal('Hello') + Word('aeiou') + (Literal('Hi') | 'there')",
+            # or maybe in future:
+            #"'Hello' + Word('aeiou') + (Literal('Hi') | 'there')",
+            "Literal('Hello') + Word('aeiou') + (Literal('Hi') | Literal('there'))",
+        )
 
     def testOr(self):
-        pass
+        p = pp.Or([])
+        self.check_all(
+            p,
+            "{}",
+            "Or([])",
+        )
+
+        p = pp.Or(["Hello"])
+        self.check_all(
+            p,
+            "{'Hello'}",
+            "Or(['Hello'])",
+            "Or([Literal('Hello')])",
+        )
+
+        p = pp.Or([pp.Word("aeiou")])
+        self.check_all(
+            p,
+            "{W:(aeiou)}",
+            "Or([Word('aeiou')])",
+        )
+
+        p = pp.Or(["Hello", "world"])
+        self.check_all(
+            p,
+            "{'Hello' ^ 'world'}",
+            "Literal('Hello') ^ 'world'",
+            "Literal('Hello') ^ Literal('world')",
+        )
+
+        p = pp.Or(["Hello", pp.Word("aeiou")])
+        self.check_all(
+            p,
+            "{'Hello' ^ W:(aeiou)}",
+            "Literal('Hello') ^ Word('aeiou')",
+            # or maybe in future:
+            #"'Hello' ^ Word('aeiou')",
+            #"Literal('Hello') ^ Word('aeiou')",
+        )
+
+        p = pp.Or([pp.Word("aeiou"), "Hello"])
+        self.check_all(
+            p,
+            "{W:(aeiou) ^ 'Hello'}",
+            "Word('aeiou') ^ 'Hello'",
+            "Word('aeiou') ^ Literal('Hello')",
+        )
+
+        p = pp.Or([pp.Word("aeiou"), pp.Word("AEIOU")])
+        self.check_all(
+            p,
+            "{W:(aeiou) ^ W:(AEIOU)}",
+            "Word('aeiou') ^ Word('AEIOU')",
+        )
+
+        p = pp.Or([pp.And(["Hello", "there"]), "Hi"])
+        self.check_all(
+            p,
+            "{{'Hello' 'there'} ^ 'Hi'}",
+            "(Literal('Hello') + 'there') ^ 'Hi'",
+            "(Literal('Hello') + Literal('there')) ^ Literal('Hi')",
+        )
+
+        p = pp.Or(["Hello", pp.And(["Hi", "there"])])
+        self.check_all(
+            p,
+            "{'Hello' ^ {'Hi' 'there'}}",
+            "Literal('Hello') ^ (Literal('Hi') + 'there')",
+            # or maybe in future:
+            #"'Hello' ^ (Literal('Hi') + 'there')",
+            "Literal('Hello') ^ (Literal('Hi') + Literal('there'))",
+        )
+
+        p = pp.Or(["Hello", "Hi", "Greetings"])
+        self.check_all(
+            p,
+            "{'Hello' ^ 'Hi' ^ 'Greetings'}",
+            "Literal('Hello') ^ 'Hi' ^ 'Greetings'",
+            "Literal('Hello') ^ Literal('Hi') ^ Literal('Greetings')",
+        )
+
+        p = pp.Or(["Hello", pp.And(["Hi", "there"]), pp.Word("aeiou")])
+        self.check_all(
+            p,
+            "{'Hello' ^ {'Hi' 'there'} ^ W:(aeiou)}",
+            "Literal('Hello') ^ (Literal('Hi') + 'there') ^ Word('aeiou')",
+            # or maybe in future:
+            #"'Hello' ^ (Literal('Hi') + 'there') ^ Word('aeiou')",
+            "Literal('Hello') ^ (Literal('Hi') + Literal('there')) ^ Word('aeiou')",
+        )
+
+        p = pp.Or(["Hello", pp.Word("aeiou"), pp.And(["Hi", "there"])])
+        self.check_all(
+            p,
+            "{'Hello' ^ W:(aeiou) ^ {'Hi' 'there'}}",
+            "Literal('Hello') ^ Word('aeiou') ^ (Literal('Hi') + 'there')",
+            # or maybe in future:
+            #"'Hello' ^ Word('aeiou') ^ 'Hi'",
+            "Literal('Hello') ^ Word('aeiou') ^ (Literal('Hi') + Literal('there'))",
+        )
 
     def testMatchFirst(self):
-        pass
+        p = pp.MatchFirst([])
+        self.check_all(
+            p,
+            "{}",
+            "MatchFirst([])",
+        )
+
+        p = pp.MatchFirst(["Hello"])
+        self.check_all(
+            p,
+            "{'Hello'}",
+            "MatchFirst(['Hello'])",
+            "MatchFirst([Literal('Hello')])",
+        )
+
+        p = pp.MatchFirst([pp.Word("aeiou")])
+        self.check_all(
+            p,
+            "{W:(aeiou)}",
+            "MatchFirst([Word('aeiou')])",
+        )
+
+        p = pp.MatchFirst(["Hello", "world"])
+        self.check_all(
+            p,
+            "{'Hello' | 'world'}",
+            "Literal('Hello') | 'world'",
+            "Literal('Hello') | Literal('world')",
+        )
+
+        p = pp.MatchFirst(["Hello", pp.Word("aeiou")])
+        self.check_all(
+            p,
+            "{'Hello' | W:(aeiou)}",
+            "Literal('Hello') | Word('aeiou')",
+            # or maybe in future:
+            #"'Hello' | Word('aeiou')",
+            #"Literal('Hello') | Word('aeiou')",
+        )
+
+        p = pp.MatchFirst([pp.Word("aeiou"), "Hello"])
+        self.check_all(
+            p,
+            "{W:(aeiou) | 'Hello'}",
+            "Word('aeiou') | 'Hello'",
+            "Word('aeiou') | Literal('Hello')",
+        )
+
+        p = pp.MatchFirst([pp.Word("aeiou"), pp.Word("AEIOU")])
+        self.check_all(
+            p,
+            "{W:(aeiou) | W:(AEIOU)}",
+            "Word('aeiou') | Word('AEIOU')",
+        )
+
+        p = pp.MatchFirst([pp.And(["Hello", "there"]), "Hi"])
+        self.check_all(
+            p,
+            "{{'Hello' 'there'} | 'Hi'}",
+            "(Literal('Hello') + 'there') | 'Hi'",
+            "(Literal('Hello') + Literal('there')) | Literal('Hi')",
+        )
+
+        p = pp.MatchFirst(["Hello", pp.And(["Hi", "there"])])
+        self.check_all(
+            p,
+            "{'Hello' | {'Hi' 'there'}}",
+            "Literal('Hello') | (Literal('Hi') + 'there')",
+            # or maybe in future:
+            #"'Hello' | (Literal('Hi') + 'there')",
+            "Literal('Hello') | (Literal('Hi') + Literal('there'))",
+        )
+
+        p = pp.MatchFirst(["Hello", "Hi", "Greetings"])
+        self.check_all(
+            p,
+            "{'Hello' | 'Hi' | 'Greetings'}",
+            "Literal('Hello') | 'Hi' | 'Greetings'",
+            "Literal('Hello') | Literal('Hi') | Literal('Greetings')",
+        )
+
+        p = pp.MatchFirst(["Hello", pp.And(["Hi", "there"]), pp.Word("aeiou")])
+        self.check_all(
+            p,
+            "{'Hello' | {'Hi' 'there'} | W:(aeiou)}",
+            "Literal('Hello') | (Literal('Hi') + 'there') | Word('aeiou')",
+            # or maybe in future:
+            #"'Hello' | (Literal('Hi') + 'there') | Word('aeiou')",
+            "Literal('Hello') | (Literal('Hi') + Literal('there')) | Word('aeiou')",
+        )
+
+        p = pp.MatchFirst(["Hello", pp.Word("aeiou"), pp.And(["Hi", "there"])])
+        self.check_all(
+            p,
+            "{'Hello' | W:(aeiou) | {'Hi' 'there'}}",
+            "Literal('Hello') | Word('aeiou') | (Literal('Hi') + 'there')",
+            # or maybe in future:
+            #"'Hello' | Word('aeiou') | 'Hi'",
+            "Literal('Hello') | Word('aeiou') | (Literal('Hi') + Literal('there'))",
+        )
 
     def testEach(self):
-        pass
+        p = pp.Each([])
+        self.check_all(
+            p,
+            "{}",
+            "Each([])",
+        )
+
+        p = pp.Each(["Hello"])
+        self.check_all(
+            p,
+            "{'Hello'}",
+            "Each(['Hello'])",
+            "Each([Literal('Hello')])",
+        )
+
+        p = pp.Each([pp.Word("aeiou")])
+        self.check_all(
+            p,
+            "{W:(aeiou)}",
+            "Each([Word('aeiou')])",
+        )
+
+        p = pp.Each(["Hello", "world"])
+        self.check_all(
+            p,
+            "{'Hello' & 'world'}",
+            "Literal('Hello') & 'world'",
+            "Literal('Hello') & Literal('world')",
+        )
+
+        p = pp.Each(["Hello", pp.Word("aeiou")])
+        self.check_all(
+            p,
+            "{'Hello' & W:(aeiou)}",
+            "Literal('Hello') & Word('aeiou')",
+            # or maybe in future:
+            #"'Hello' & Word('aeiou')",
+            #"Literal('Hello') & Word('aeiou')",
+        )
+
+        p = pp.Each([pp.Word("aeiou"), "Hello"])
+        self.check_all(
+            p,
+            "{W:(aeiou) & 'Hello'}",
+            "Word('aeiou') & 'Hello'",
+            "Word('aeiou') & Literal('Hello')",
+        )
+
+        p = pp.Each([pp.Word("aeiou"), pp.Word("AEIOU")])
+        self.check_all(
+            p,
+            "{W:(aeiou) & W:(AEIOU)}",
+            "Word('aeiou') & Word('AEIOU')",
+        )
+
+        p = pp.Each([pp.And(["Hello", "there"]), "Hi"])
+        self.check_all(
+            p,
+            "{{'Hello' 'there'} & 'Hi'}",
+            "(Literal('Hello') + 'there') & 'Hi'",
+            "(Literal('Hello') + Literal('there')) & Literal('Hi')",
+        )
+
+        p = pp.Each(["Hello", pp.And(["Hi", "there"])])
+        self.check_all(
+            p,
+            "{'Hello' & {'Hi' 'there'}}",
+            "Literal('Hello') & (Literal('Hi') + 'there')",
+            # or maybe in future:
+            #"'Hello' & (Literal('Hi') + 'there')",
+            "Literal('Hello') & (Literal('Hi') + Literal('there'))",
+        )
+
+        p = pp.Each(["Hello", "Hi", "Greetings"])
+        self.check_all(
+            p,
+            "{'Hello' & 'Hi' & 'Greetings'}",
+            "Literal('Hello') & 'Hi' & 'Greetings'",
+            "Literal('Hello') & Literal('Hi') & Literal('Greetings')",
+        )
+
+        p = pp.Each(["Hello", pp.And(["Hi", "there"]), pp.Word("aeiou")])
+        self.check_all(
+            p,
+            "{'Hello' & {'Hi' 'there'} & W:(aeiou)}",
+            "Literal('Hello') & (Literal('Hi') + 'there') & Word('aeiou')",
+            # or maybe in future:
+            #"'Hello' & (Literal('Hi') + 'there') & Word('aeiou')",
+            "Literal('Hello') & (Literal('Hi') + Literal('there')) & Word('aeiou')",
+        )
+
+        p = pp.Each(["Hello", pp.Word("aeiou"), pp.And(["Hi", "there"])])
+        self.check_all(
+            p,
+            "{'Hello' & W:(aeiou) & {'Hi' 'there'}}",
+            "Literal('Hello') & Word('aeiou') & (Literal('Hi') + 'there')",
+            # or maybe in future:
+            #"'Hello' & Word('aeiou') & 'Hi'",
+            "Literal('Hello') & Word('aeiou') & (Literal('Hi') + Literal('there'))",
+        )
 
     def testIndentedBlock(self):
         p = pp.IndentedBlock("Hello")
