@@ -3799,6 +3799,10 @@ class ParseExpression(ParserElement):
         result = op.join(builder)
         return f"({result})" if _is_term else result
 
+    def _generateDefaultName(self) -> str:
+        op = f" {type(self).OPERATOR} "
+        return "{" + op.join(map(str, self.exprs)) + "}"
+
     def recurse(self) -> Sequence[ParserElement]:
         return self.exprs[:]
 
@@ -3843,9 +3847,6 @@ class ParseExpression(ParserElement):
             for e in self.exprs:
                 e.ignore(self.ignoreExprs[-1])
         return self
-
-    def _generateDefaultName(self) -> str:
-        return f"{self.__class__.__name__}:({str(self.exprs)})"
 
     def streamline(self) -> ParserElement:
         if self.streamlined:
@@ -4238,9 +4239,6 @@ class Or(ParseExpression):
             other = self._literalStringClass(other)
         return self.append(other)  # Or([self, other])
 
-    def _generateDefaultName(self) -> str:
-        return "{" + " ^ ".join(str(e) for e in self.exprs) + "}"
-
     def _setResultsName(self, name, listAllMatches=False):
         if (
             __diag__.warn_multiple_tokens_in_named_alternation
@@ -4350,9 +4348,6 @@ class MatchFirst(ParseExpression):
         if isinstance(other, str_type):
             other = self._literalStringClass(other)
         return self.append(other)  # MatchFirst([self, other])
-
-    def _generateDefaultName(self) -> str:
-        return "{" + " | ".join(str(e) for e in self.exprs) + "}"
 
     def _setResultsName(self, name, listAllMatches=False):
         if (
@@ -4545,9 +4540,6 @@ class Each(ParseExpression):
             total_results += results
 
         return loc, total_results
-
-    def _generateDefaultName(self) -> str:
-        return "{" + " & ".join(str(e) for e in self.exprs) + "}"
 
 
 class ParseElementEnhance(ParserElement):
