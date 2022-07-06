@@ -1101,7 +1101,7 @@ class ParserElement(ABC):
           an object with attributes if the given parser includes results names.
 
         If the input string is required to match the entire grammar, ``parse_all`` flag must be set to ``True``. This
-        is also equivalent to ending the grammar with :class:`StringEnd`\ ().
+        is also equivalent to ending the grammar with :class:`StringEnd`\\ ().
 
         To report proper column numbers, ``parse_string`` operates on a copy of the input string where all tabs are
         converted to spaces (8 spaces per tab, as per the default in ``string.expandtabs``). If the input string
@@ -5092,7 +5092,10 @@ class OneOrMore(_MultipleMatch):
     """
 
     def _format(self, full=False, _full_once=False, _is_term=False):
-        return f"{self.expr._format(full, _full_once=True, _is_term=True)}[1,...]"
+        if self.not_ender is not None:
+            ender = self.not_ender.expr
+            return f"{self.expr._format(full, _full_once=True, _is_term=True)}[1, ...: {ender._format(full)}]"
+        return f"{self.expr._format(full, _full_once=True, _is_term=True)}[1, ...]"
 
     def _generateDefaultName(self) -> str:
         return "{" + str(self.expr) + "}..."
@@ -5123,6 +5126,9 @@ class ZeroOrMore(_MultipleMatch):
         self.mayReturnEmpty = True
 
     def _format(self, full=False, _full_once=False, _is_term=False):
+        if self.not_ender is not None:
+            ender = self.not_ender.expr
+            return f"{self.expr._format(full, _full_once=True, _is_term=True)}[...: {ender._format(full)}]"
         return f"{self.expr._format(full, _full_once=True, _is_term=True)}[...]"
 
     def parseImpl(self, instring, loc, doActions=True):

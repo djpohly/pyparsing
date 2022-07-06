@@ -355,50 +355,265 @@ class Test01c_ParseExpressionFormatting(TestCase):
         pass
 
     def testIndentedBlock(self):
-        p1 = pp.IndentedBlock("Hello")
-        p2 = pp.IndentedBlock(pp.Keyword("Hello"))
-
+        p = pp.IndentedBlock("Hello")
         self.check_all(
-            p1,
+            p,
             "IndentedBlock:('Hello')",
             "IndentedBlock('Hello')",
             "IndentedBlock(Literal('Hello'))",
         )
+
+        p = pp.IndentedBlock(pp.Word("aeiou"))
         self.check_all(
-            p2,
-            "IndentedBlock:('Hello')",
-            "IndentedBlock(Keyword('Hello'))",
+            p,
+            "IndentedBlock:(W:(aeiou))",
+            "IndentedBlock(Word('aeiou'))",
         )
 
     def testAtStringStart(self):
-        pass
+        p = pp.AtStringStart("Hello")
+        self.check_all(
+            p,
+            "AtStringStart:('Hello')",
+            "AtStringStart('Hello')",
+            "AtStringStart(Literal('Hello'))",
+        )
+
+        p = pp.AtStringStart(pp.Word("aeiou"))
+        self.check_all(
+            p,
+            "AtStringStart:(W:(aeiou))",
+            "AtStringStart(Word('aeiou'))",
+        )
 
     def testAtLineStart(self):
-        pass
+        p = pp.AtLineStart("Hello")
+        self.check_all(
+            p,
+            "AtLineStart:('Hello')",
+            "AtLineStart('Hello')",
+            "AtLineStart(Literal('Hello'))",
+        )
+
+        p = pp.AtLineStart(pp.Word("aeiou"))
+        self.check_all(
+            p,
+            "AtLineStart:(W:(aeiou))",
+            "AtLineStart(Word('aeiou'))",
+        )
+
 
     def testFollowedBy(self):
-        pass
+        p = pp.FollowedBy("Hello")
+        self.check_all(
+            p,
+            "FollowedBy:('Hello')",
+            "FollowedBy('Hello')",
+            "FollowedBy(Literal('Hello'))",
+        )
+
+        p = pp.FollowedBy(pp.Word("aeiou"))
+        self.check_all(
+            p,
+            "FollowedBy:(W:(aeiou))",
+            "FollowedBy(Word('aeiou'))",
+        )
 
     def testPrecededBy(self):
-        pass
+        p = pp.PrecededBy("Hello")
+        self.check_all(
+            p,
+            "PrecededBy:('Hello')",
+            "PrecededBy('Hello')",
+            "PrecededBy(Literal('Hello'))",
+        )
+
+        p = pp.PrecededBy(pp.Word("aeiou"))
+        self.check_all(
+            p,
+            "PrecededBy:(W:(aeiou))",
+            "PrecededBy(Word('aeiou'))",
+        )
 
     def testLocated(self):
-        pass
+        p = pp.Located("Hello")
+        self.check_all(
+            p,
+            "Located:('Hello')",
+            "Located('Hello')",
+            "Located(Literal('Hello'))",
+        )
+
+        p = pp.Located(pp.Word("aeiou"))
+        self.check_all(
+            p,
+            "Located:(W:(aeiou))",
+            "Located(Word('aeiou'))",
+        )
 
     def testNotAny(self):
-        pass
+        p = pp.NotAny("Hello")
+        self.check_all(
+            p,
+            "~{'Hello'}",
+            "~Literal('Hello')",
+        )
+
+        p = pp.NotAny(pp.Word("aeiou"))
+        self.check_all(
+            p,
+            "~{W:(aeiou)}",
+            "~Word('aeiou')",
+        )
+
+        p = pp.NotAny(pp.Word("aeiou") | "hello")
+        self.check_all(
+            p,
+            "~{{W:(aeiou) | 'hello'}}",
+            "~(Word('aeiou') | 'hello')",
+            "~(Word('aeiou') | Literal('hello'))",
+        )
+
 
     def testZeroOrMore(self):
-        pass
+        p = pp.ZeroOrMore("Hello")
+        self.check_all(
+            p,
+            "['Hello']...",
+            "Literal('Hello')[...]",
+        )
+
+        p = pp.ZeroOrMore(pp.Word("aeiou"))
+        self.check_all(
+            p,
+            "[W:(aeiou)]...",
+            "Word('aeiou')[...]",
+        )
+
+        p = pp.ZeroOrMore(pp.Word("aeiou") | "hello")
+        self.check_all(
+            p,
+            "[{W:(aeiou) | 'hello'}]...",
+            "(Word('aeiou') | 'hello')[...]",
+            "(Word('aeiou') | Literal('hello'))[...]",
+        )
+
+        p = pp.ZeroOrMore("Hello", stop_on="bye")
+        self.check_all(
+            p,
+            "['Hello']...",
+            "Literal('Hello')[...: 'bye']",
+            "Literal('Hello')[...: Literal('bye')]",
+        )
+
+        p = pp.ZeroOrMore("Hello", stop_on=pp.Word("xyz"))
+        self.check_all(
+            p,
+            "['Hello']...",
+            "Literal('Hello')[...: Word('xyz')]",
+        )
+
+        p = pp.ZeroOrMore("Hello", stop_on=(pp.Word("xyz") | "bye"))
+        self.check_all(
+            p,
+            "['Hello']...",
+            "Literal('Hello')[...: Word('xyz') | 'bye']",
+            "Literal('Hello')[...: Word('xyz') | Literal('bye')]",
+        )
 
     def testOneOrMore(self):
-        pass
+        p = pp.OneOrMore("Hello")
+        self.check_all(
+            p,
+            "{'Hello'}...",
+            "Literal('Hello')[1, ...]",
+        )
+
+        p = pp.OneOrMore(pp.Word("aeiou"))
+        self.check_all(
+            p,
+            "{W:(aeiou)}...",
+            "Word('aeiou')[1, ...]",
+        )
+
+        p = pp.OneOrMore(pp.Word("aeiou") | "hello")
+        self.check_all(
+            p,
+            "{{W:(aeiou) | 'hello'}}...",
+            "(Word('aeiou') | 'hello')[1, ...]",
+            "(Word('aeiou') | Literal('hello'))[1, ...]",
+        )
+
+        p = pp.OneOrMore("Hello", stop_on="bye")
+        self.check_all(
+            p,
+            "{'Hello'}...",
+            "Literal('Hello')[1, ...: 'bye']",
+            "Literal('Hello')[1, ...: Literal('bye')]",
+        )
+
+        p = pp.OneOrMore("Hello", stop_on=pp.Word("xyz"))
+        self.check_all(
+            p,
+            "{'Hello'}...",
+            "Literal('Hello')[1, ...: Word('xyz')]",
+        )
+
+        p = pp.OneOrMore("Hello", stop_on=(pp.Word("xyz") | "bye"))
+        self.check_all(
+            p,
+            "{'Hello'}...",
+            "Literal('Hello')[1, ...: Word('xyz') | 'bye']",
+            "Literal('Hello')[1, ...: Word('xyz') | Literal('bye')]",
+        )
 
     def testOpt(self):
-        pass
+        p = pp.Opt("Hello")
+        self.check_all(
+            p,
+            "['Hello']",
+            "Opt('Hello')",
+            "Opt(Literal('Hello'))",
+        )
+
+        p = pp.Opt(pp.Word("aeiou"))
+        self.check_all(
+            p,
+            "[W:(aeiou)]",
+            "Opt(Word('aeiou'))",
+        )
+
+        p = pp.Opt(pp.Word("aeiou") | "hello")
+        self.check_all(
+            p,
+            "[W:(aeiou) | 'hello']",
+            "Opt(Word('aeiou') | 'hello')",
+            "Opt(Word('aeiou') | Literal('hello'))",
+        )
 
     def testSkipTo(self):
-        pass
+        p = pp.SkipTo("Hello")
+        self.check_all(
+            p,
+            "SkipTo:('Hello')",
+            "SkipTo('Hello')",
+            "SkipTo(Literal('Hello'))",
+        )
+
+        p = pp.SkipTo(pp.Word("aeiou"))
+        self.check_all(
+            p,
+            "SkipTo:(W:(aeiou))",
+            "SkipTo(Word('aeiou'))",
+        )
+
+        p = pp.SkipTo(pp.Word("aeiou") | "hello")
+        self.check_all(
+            p,
+            "SkipTo:({W:(aeiou) | 'hello'})",
+            "SkipTo(Word('aeiou') | 'hello')",
+            "SkipTo(Word('aeiou') | Literal('hello'))",
+        )
 
     def testForward(self):
         pass
@@ -413,7 +628,28 @@ class Test01c_ParseExpressionFormatting(TestCase):
         pass
 
     def testSuppress(self):
-        pass
+        p = pp.Suppress("Hello")
+        self.check_all(
+            p,
+            "Suppress:('Hello')",
+            "Suppress('Hello')",
+            "Suppress(Literal('Hello'))",
+        )
+
+        p = pp.Suppress(pp.Word("aeiou"))
+        self.check_all(
+            p,
+            "Suppress:(W:(aeiou))",
+            "Suppress(Word('aeiou'))",
+        )
+
+        p = pp.Suppress(pp.Word("aeiou") | "hello")
+        self.check_all(
+            p,
+            "Suppress:({W:(aeiou) | 'hello'})",
+            "Suppress(Word('aeiou') | 'hello')",
+            "Suppress(Word('aeiou') | Literal('hello'))",
+        )
 
     def testInlineLiterals(self):
         lit = pp.Opt(pp.Literal("Hello"))
