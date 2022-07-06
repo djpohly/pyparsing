@@ -477,6 +477,19 @@ class ParserElement(ABC):
         self.suppress_warnings_: List[Diagnostics] = []
 
     def __repr__(self):
+        return f"{self:r}"
+
+    def __format__(self, spec):
+        if not spec or spec == "s":
+            return str(self)
+        elif spec == "r":
+            return self._format(False, _full_once=True)
+        elif spec == "f":
+            return self._format(True, _full_once=True)
+        else:
+            raise ValueError("Invalid format specifier")
+
+    def _format(self, full=False, _full_once=False, _is_term=False):
         return f"{type(self).__name__}()"
 
     def suppress_warning(self, warning_type: Diagnostics) -> "ParserElement":
@@ -2389,7 +2402,9 @@ class Literal(Token):
         obj.__dict__.update(self.__dict__)
         return obj
 
-    def __repr__(self):
+    def _format(self, full=False, _full_once=False, _is_term=False):
+        if not full and not _full_once and isinstance(self, ParserElement._literalStringClass):
+            return repr(self.match)
         return f"{type(self).__name__}({self.match!r})"
 
     def _generateDefaultName(self) -> str:
@@ -2413,7 +2428,9 @@ class Empty(Literal):
         self.mayReturnEmpty = True
         self.mayIndexError = False
 
-    def __repr__(self):
+    def _format(self, full=False, _full_once=False, _is_term=False):
+        if not full and not _full_once and isinstance(self, ParserElement._literalStringClass):
+            return repr("")
         return "Empty()"
 
     def _generateDefaultName(self) -> str:
@@ -2424,7 +2441,9 @@ class Empty(Literal):
 
 
 class _SingleCharLiteral(Literal):
-    def __repr__(self):
+    def _format(self, full=False, _full_once=False, _is_term=False):
+        if not full and not _full_once and isinstance(self, ParserElement._literalStringClass):
+            return repr(self.match)
         return f"Literal({self.match!r})"
 
     def parseImpl(self, instring, loc, doActions=True):
@@ -2494,8 +2513,10 @@ class Keyword(Token):
             identChars = identChars.upper()
         self.identChars = set(identChars)
 
-    def __repr__(self) -> str:
-        return f"Keyword({self.match!r})"
+    def _format(self, full=False, _full_once=False, _is_term=False):
+        if not full and not _full_once and isinstance(self, ParserElement._literalStringClass):
+            return repr(self.match)
+        return f"{type(self).__name__}({self.match!r})"
 
     def _generateDefaultName(self) -> str:
         return repr(self.match)
@@ -2578,7 +2599,9 @@ class CaselessLiteral(Literal):
         self.returnString = match_string
         self.errmsg = "Expected " + self.name
 
-    def __repr__(self) -> str:
+    def _format(self, full=False, _full_once=False, _is_term=False):
+        if not full and not _full_once and isinstance(self, ParserElement._literalStringClass):
+            return repr(self.returnString)
         return f"CaselessLiteral({self.returnString!r})"
 
     def parseImpl(self, instring, loc, doActions=True):
@@ -2664,7 +2687,11 @@ class CloseMatch(Token):
         self.mayIndexError = False
         self.mayReturnEmpty = False
 
-    def __repr__(self) -> str:
+    def _format(self, full=False, _full_once=False, _is_term=False):
+        if not full and not _full_once and isinstance(self, ParserElement._literalStringClass):
+            return repr(self.match_string)
+        if self.maxMismatches == 1:
+            return f"{type(self).__name__}({self.match_string!r})"
         return f"{type(self).__name__}({self.match_string!r}, {self.maxMismatches})"
 
     def _generateDefaultName(self) -> str:
@@ -2887,13 +2914,24 @@ class Word(Token):
                 self.re_match = self.re.match
                 self.parseImpl = self.parseImpl_regex
 
-    def __repr__(self) -> str:
+    def _format(self, full=False, _full_once=False, _is_term=False):
         init = "".join(sorted(self.initChars))
-        args = f"{init!r}"
+        if self.maxLen == 1:
+            return f"Char({init!r})"
+        args = [repr(init)]
         if self.initChars != self.bodyChars:
             body = "".join(sorted(self.bodyChars))
-            args += f", {body!r}"
-        return f"{type(self).__name__}({args})"
+            args.append(repr(body))
+        if self.minLen == self.maxLen:
+            args.append(f"exact={self.minLen}")
+        else:
+            if self.minLen > 1:
+                args.append(f"min={self.minLen}")
+            if self.maxLen < _MAX_INT:
+                args.append(f"max={self.maxLen}")
+
+        arg_str = ", ".join(args)
+        return f"{type(self).__name__}({arg_str})"
 
     def _generateDefaultName(self) -> str:
         def charsAsStr(s):
@@ -3056,7 +3094,9 @@ class Regex(Token):
         if self.asMatch:
             self.parseImpl = self.parseImplAsMatch  # type: ignore [assignment]
 
-    def __repr__(self) -> str:
+    def _format(self, full=False, _full_once=False, _is_term=False):
+        if not full and not _full_once and isinstance(self, ParserElement._literalStringClass):
+            return repr(self.pattern)
         return f"Regex({self.pattern!r})"
 
     @cached_property
@@ -3291,7 +3331,7 @@ class QuotedString(Token):
         self.mayIndexError = False
         self.mayReturnEmpty = True
 
-    def __repr__(self) -> str:
+    def _format(self, full=False, _full_once=False, _is_term=False):
         if self.quoteChar == self.endQuoteChar and isinstance(self.quoteChar, str_type):
             return f"QuotedString({self.quoteChar!r})"
         return f"QuotedString({self.quoteChar!r}, end_quote_char={self.endQuoteChar!r})"
@@ -3392,9 +3432,9 @@ class CharsNotIn(Token):
         self.mayReturnEmpty = self.minLen == 0
         self.mayIndexError = False
 
-    def __repr__(self) -> str:
+    def _format(self, full=False, _full_once=False, _is_term=False):
         not_chars = "".join(sorted(self.notCharsSet))
-        return f"NotChars({not_chars!r})"
+        return f"CharsNotIn({not_chars!r})"
 
     def _generateDefaultName(self) -> str:
         not_chars_str = _collapse_string_to_ranges(self.notChars)
@@ -3459,8 +3499,9 @@ class White(Token):
     def __init__(self, ws: str = " \t\r\n", min: int = 1, max: int = 0, exact: int = 0):
         super().__init__()
         self.matchWhite = ws
+        self.ws_set = set(ws)
         self.set_whitespace_chars(
-            "".join(c for c in self.whiteStrs if c not in self.matchWhite),
+            "".join(self.whiteStrs.keys() - self.ws_set),
             copy_defaults=True,
         )
         # self.leave_whitespace()
@@ -3478,22 +3519,23 @@ class White(Token):
             self.maxLen = exact
             self.minLen = exact
 
-    def __repr__(self) -> str:
-        if set(self.matchWhite) == set(" \t\r\n"):
+    def _format(self, full=False, _full_once=False, _is_term=False):
+        if self.ws_set == set(" \t\r\n"):
             return f"{type(self).__name__}()"
-        return f"{type(self).__name__}({self.matchWhite!r})"
+        ws_str = "".join(sorted(self.ws_set))
+        return f"{type(self).__name__}({ws_str!r})"
 
     def _generateDefaultName(self) -> str:
-        return "".join(White.whiteStrs[c] for c in self.matchWhite)
+        return "".join(White.whiteStrs[c] for c in sorted(self.ws_set))
 
     def parseImpl(self, instring, loc, doActions=True):
-        if instring[loc] not in self.matchWhite:
+        if instring[loc] not in self.ws_set:
             raise ParseException(instring, loc, self.errmsg, self)
         start = loc
         loc += 1
         maxloc = start + self.maxLen
         maxloc = min(maxloc, len(instring))
-        while loc < maxloc and instring[loc] in self.matchWhite:
+        while loc < maxloc and instring[loc] in self.ws_set:
             loc += 1
 
         if loc - start < self.minLen:
@@ -3518,7 +3560,7 @@ class GoToColumn(PositionToken):
         super().__init__()
         self.col = colno
 
-    def __repr__(self):
+    def _format(self, full=False, _full_once=False, _is_term=False):
         return f"{type(self).__name__}({self.col!r})"
 
     def preParse(self, instring: str, loc: int) -> int:
@@ -3666,7 +3708,7 @@ class WordStart(PositionToken):
         self.wordChars = set(wordChars)
         self.errmsg = "Not at the start of a word"
 
-    def __repr__(self):
+    def _format(self, full=False, _full_once=False, _is_term=False):
         if self.wordChars == set(printables):
             return f"{type(self).__name__}()"
         chars = "".join(sorted(self.wordChars))
@@ -3698,7 +3740,7 @@ class WordEnd(PositionToken):
         self.skipWhitespace = False
         self.errmsg = "Not at the end of a word"
 
-    def __repr__(self):
+    def _format(self, full=False, _full_once=False, _is_term=False):
         if self.wordChars == set(printables):
             return f"{type(self).__name__}()"
         chars = "".join(sorted(self.wordChars))
@@ -3748,11 +3790,18 @@ class ParseExpression(ParserElement):
                 self.exprs = [exprs]
         self.callPreparse = False
 
-    def __repr__(self):
-        if len(self.exprs) < 2:
-            return f"{type(self).__name__}({self.exprs!r})"
+    def _format(self, full=False, _full_once=False, _is_term=False):
+        if not self.exprs:
+            return f"{type(self).__name__}([])"
+        if len(self.exprs) == 1:
+            return f"{type(self).__name__}([{self.exprs[0]._format(full)}])"
+
         op = f" {type(self).OPERATOR} "
-        return "(" + op.join(map(repr, self.exprs)) + ")"
+        builder = [self.exprs[0]._format(full, _full_once=True, _is_term=True)]
+        for expr in self.exprs[1:]:
+            builder.append(expr._format(full, _is_term=True))
+        result = op.join(builder)
+        return f"({result})" if _is_term else result
 
     def recurse(self) -> Sequence[ParserElement]:
         return self.exprs[:]
@@ -3954,22 +4003,23 @@ class And(ParseExpression):
             self.mayReturnEmpty = True
         self.callPreparse = True
 
-    def __repr__(self):
+    def _format(self, full=False, _full_once=False, _is_term=False):
         if len(self.exprs) < 2:
             return f"{type(self).__name__}({self.exprs!r})"
 
-        builder = [repr(self.exprs[0])]
+        builder = [self.exprs[0]._format(full, _full_once=True, _is_term=True)]
         nextOp = "+"
         for expr in self.exprs[1:]:
             if isinstance(expr, And._ErrorStop):
                 nextOp = "-"
                 continue
             builder.append(nextOp)
-            builder.append(repr(expr))
+            builder.append(expr._format(full, _is_term=True))
             nextOp = "+"
         if nextOp == "-":
             builder.append("+ _ErrorStop()")
-        return "(" + " ".join(builder) + ")"
+        result = " ".join(builder)
+        return f"({result})" if _is_term else result
 
     def streamline(self) -> ParserElement:
         # collapse any _PendingSkip's
@@ -4531,8 +4581,10 @@ class ParseElementEnhance(ParserElement):
             self.callPreparse = expr.callPreparse
             self.ignoreExprs.extend(expr.ignoreExprs)
 
-    def __repr__(self):
-        return f"{type(self).__name__}({self.expr!r})"
+    def _format(self, full=False, _full_once=False, _is_term=False):
+        if not full and not _full_once and isinstance(self, ParserElement._literalStringClass) and type(self.expr) is Literal:
+            return repr(self.expr.match)
+        return f"{type(self).__name__}({self.expr._format(full)})"
 
     def recurse(self) -> Sequence[ParserElement]:
         return [self.expr] if self.expr is not None else []
@@ -4922,8 +4974,8 @@ class NotAny(ParseElementEnhance):
         self.mayReturnEmpty = True
         self.errmsg = "Found unwanted token, " + str(self.expr)
 
-    def __repr__(self):
-        return f"~{self.expr!r}"
+    def _format(self, full=False, _full_once=False, _is_term=False):
+        return f"~{self.expr._format(full, _full_once=True, _is_term=True)}"
 
     def parseImpl(self, instring, loc, doActions=True):
         if self.expr.can_parse_next(instring, loc):
@@ -5039,8 +5091,8 @@ class OneOrMore(_MultipleMatch):
         (attr_expr * (1,)).parse_string(text).pprint()
     """
 
-    def __repr__(self):
-        return f"{self.expr!r}[1,...]"
+    def _format(self, full=False, _full_once=False, _is_term=False):
+        return f"{self.expr._format(full, _full_once=True, _is_term=True)}[1,...]"
 
     def _generateDefaultName(self) -> str:
         return "{" + str(self.expr) + "}..."
@@ -5070,8 +5122,8 @@ class ZeroOrMore(_MultipleMatch):
         super().__init__(expr, stopOn=stopOn or stop_on)
         self.mayReturnEmpty = True
 
-    def __repr__(self):
-        return f"{self.expr!r}[...]"
+    def _format(self, full=False, _full_once=False, _is_term=False):
+        return f"{self.expr._format(full, _full_once=True, _is_term=True)}[...]"
 
     def parseImpl(self, instring, loc, doActions=True):
         try:
@@ -5386,7 +5438,7 @@ class Forward(ParseElementEnhance):
                 lineno=self.caller_frame.lineno,
             )
 
-    def __repr__(self):
+    def _format(self, full=False, _full_once=False, _is_term=False):
         if self.expr is None:
             return f"{type(self).__name__}()"
         return f"{type(self).__name__}(...)"

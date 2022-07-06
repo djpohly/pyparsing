@@ -183,6 +183,312 @@ class Test01b_PyparsingUnitTestUtilitiesTests(TestCase):
                     except ParseException as pe:
                         pass
 
+class Test01c_ParseExpressionFormatting(TestCase):
+    def check_all(self, p, good_str, good_repr, good_full=None):
+        if good_full is None:
+            good_full = good_repr
+
+        self.assertEqual(str(p), good_str)
+        self.assertEqual(f"{p}", good_str)
+        self.assertEqual(f"{p:s}", good_str)
+
+        self.assertEqual(repr(p), good_repr)
+        self.assertEqual(f"{p:r}", good_repr)
+
+        self.assertEqual(f"{p:f}", good_full)
+
+    def testNoMatch(self):
+        p = pp.NoMatch()
+        self.check_all(p, "NoMatch", "NoMatch()")
+
+    def testLiteral(self):
+        p = pp.Literal("Hello")
+        self.check_all(p, "'Hello'", "Literal('Hello')")
+
+        p = pp.Literal("")
+        self.check_all(p, "Empty", "Empty()")
+
+        p = pp.Literal("Z")
+        self.check_all(p, "'Z'", "Literal('Z')")
+
+    def testEmpty(self):
+        p = pp.Empty()
+        self.check_all(p, "Empty", "Empty()")
+
+    def testKeyword(self):
+        p = pp.Keyword("Hello")
+        self.check_all(p, "'Hello'", "Keyword('Hello')")
+
+    @unittest.skip("Need clarification on str()")
+    def testCaselessLiteral(self):
+        p = pp.CaselessLiteral("Hello")
+        self.check_all(p, "'HELLO'", "CaselessLiteral('Hello')")
+
+    @unittest.skip("Need clarification on str()")
+    def testCaselessKeyword(self):
+        p = pp.CaselessKeyword("Hello")
+        self.check_all(p, "'Hello'", "CaselessKeyword('Hello')")
+
+    def testCloseMatch(self):
+        p = pp.CloseMatch("Hello")
+        self.check_all(p, "CloseMatch:'Hello'", "CloseMatch('Hello')")
+
+        # Default for maxMismatches is 1
+        p = pp.CloseMatch("Hello", 1)
+        self.check_all(p, "CloseMatch:'Hello'", "CloseMatch('Hello')")
+
+        p = pp.CloseMatch("Hello", 3)
+        self.check_all(p, "CloseMatch:'Hello'", "CloseMatch('Hello', 3)")
+
+    def testWord(self):
+        p = pp.Word("ABC")
+        self.check_all(p, "W:(ABC)", "Word('ABC')")
+
+        p = pp.Word("ABC", "cba")
+        self.check_all(p, "W:(ABC, abc)", "Word('ABC', 'abc')")
+
+        p = pp.Word("ABC", exact=5)
+        self.check_all(p, "W:(ABC){5}", "Word('ABC', exact=5)")
+
+        p = pp.Word("ABC", min=3, max=3)
+        self.check_all(p, "W:(ABC){3}", "Word('ABC', exact=3)")
+
+        p = pp.Word("ABC", min=3, max=5)
+        self.check_all(p, "W:(ABC){3,5}", "Word('ABC', min=3, max=5)")
+
+        p = pp.Word("ABC", min=3)
+        self.check_all(p, "W:(ABC){3,...}", "Word('ABC', min=3)")
+
+        p = pp.Word("ABCDEFG", "#b", max=2)
+        self.check_all(p, "W:(A-G, #b){1,2}", "Word('ABCDEFG', '#b', max=2)")
+
+        p = pp.Word("ABC", exact=1)
+        self.check_all(p, "(ABC)", "Char('ABC')")
+
+        p = pp.Char("beadgcf")
+        self.check_all(p, "(a-g)", "Char('abcdefg')")
+
+    def testRegex(self):
+        p = pp.Regex(r"(?:[A-Za-z0-9+/]{4})*[A-Za-z0-9+/=]{4}")
+        self.check_all(
+            p,
+            r"Re:('(?:[A-Za-z0-9+/]{4})*[A-Za-z0-9+/=]{4}')",
+            r"Regex('(?:[A-Za-z0-9+/]{4})*[A-Za-z0-9+/=]{4}')",
+        )
+
+        p = pp.Regex(r"\([^)]*\)")
+        self.check_all(
+            p,
+            r"Re:('\([^)]*\)')",
+            r"Regex('\\([^)]*\\)')",
+        )
+
+    def testQuotedString(self):
+        p = pp.QuotedString("/")
+        self.check_all(p, "string enclosed in '/'", "QuotedString('/')")
+
+        p = pp.QuotedString("@{", end_quote_char="}")
+        self.check_all(
+            p,
+            "quoted string, starting with @{ ending with }",
+            "QuotedString('@{', end_quote_char='}')",
+        )
+
+    def testCharsNotIn(self):
+        p = pp.CharsNotIn("aeiou")
+        self.check_all(p, "!W:(aeiou)", "CharsNotIn('aeiou')")
+
+        p = pp.CharsNotIn("ACEGIKMOQSacegikmoqs")
+        self.check_all(p, "!W:(ACEGIKMOQSace...)", "CharsNotIn('ACEGIKMOQSacegikmoqs')")
+
+    def testWhitespace(self):
+        p = pp.White()
+        self.check_all(p, "<TAB><LF><CR><SP>", "White()")
+
+        p = pp.White("\t \u00a0\u202F")
+        self.check_all(
+            p,
+            "<TAB><SP><NBSP><NNBSP>",
+            r"White('\t \xa0\u202f')",
+        )
+
+    def testGoToColumn(self):
+        p = pp.GoToColumn(80)
+        self.check_all(p, "GoToColumn", "GoToColumn(80)")
+
+    def testAnchors(self):
+        p = pp.LineStart()
+        self.check_all(p, "LineStart", "LineStart()")
+
+        p = pp.LineEnd()
+        self.check_all(p, "LineEnd", "LineEnd()")
+
+        p = pp.StringStart()
+        self.check_all(p, "StringStart", "StringStart()")
+
+        p = pp.StringEnd()
+        self.check_all(p, "StringEnd", "StringEnd()")
+
+    def testWordStartEnd(self):
+        p = pp.WordStart()
+        self.check_all(p, "WordStart", "WordStart()")
+
+        p = pp.WordStart("0123457689")
+        self.check_all(p, "WordStart", "WordStart('0123456789')")
+
+        p = pp.WordEnd()
+        self.check_all(p, "WordEnd", "WordEnd()")
+
+        p = pp.WordEnd("0123457689")
+        self.check_all(p, "WordEnd", "WordEnd('0123456789')")
+
+    def testAnd(self):
+        pass
+
+    def testOr(self):
+        pass
+
+    def testMatchFirst(self):
+        pass
+
+    def testEach(self):
+        pass
+
+    def testIndentedBlock(self):
+        p1 = pp.IndentedBlock("Hello")
+        p2 = pp.IndentedBlock(pp.Keyword("Hello"))
+
+        self.check_all(
+            p1,
+            "IndentedBlock:('Hello')",
+            "IndentedBlock('Hello')",
+            "IndentedBlock(Literal('Hello'))",
+        )
+        self.check_all(
+            p2,
+            "IndentedBlock:('Hello')",
+            "IndentedBlock(Keyword('Hello'))",
+        )
+
+    def testAtStringStart(self):
+        pass
+
+    def testAtLineStart(self):
+        pass
+
+    def testFollowedBy(self):
+        pass
+
+    def testPrecededBy(self):
+        pass
+
+    def testLocated(self):
+        pass
+
+    def testNotAny(self):
+        pass
+
+    def testZeroOrMore(self):
+        pass
+
+    def testOneOrMore(self):
+        pass
+
+    def testOpt(self):
+        pass
+
+    def testSkipTo(self):
+        pass
+
+    def testForward(self):
+        pass
+
+    def testCombine(self):
+        pass
+
+    def testGroup(self):
+        pass
+
+    def testDict(self):
+        pass
+
+    def testSuppress(self):
+        pass
+
+    def testInlineLiterals(self):
+        lit = pp.Opt(pp.Literal("Hello"))
+        key = pp.Opt(pp.Keyword("Hello"))
+        ck = pp.Opt(pp.CaselessKeyword("Hello"))
+        sup = pp.Opt(pp.Suppress("Hello"))
+
+        self.check_all(
+            lit,
+            "['Hello']",
+            "Opt('Hello')",
+            "Opt(Literal('Hello'))",
+        )
+        self.check_all(
+            key,
+            "['Hello']",
+            "Opt(Keyword('Hello'))",
+        )
+        self.check_all(
+            ck,
+            "['Hello']",
+            "Opt(CaselessKeyword('Hello'))",
+        )
+        self.check_all(
+            sup,
+            "[Suppress:('Hello')]",
+            "Opt(Suppress('Hello'))",
+            "Opt(Suppress(Literal('Hello')))",
+        )
+
+        pp.ParserElement.inline_literals_using(pp.Keyword)
+
+        self.check_all(
+            lit,
+            "['Hello']",
+            "Opt(Literal('Hello'))",
+        )
+        self.check_all(
+            key,
+            "['Hello']",
+            "Opt('Hello')",
+            "Opt(Keyword('Hello'))",
+        )
+
+        pp.ParserElement.inline_literals_using(pp.CaselessKeyword)
+
+        self.check_all(
+            key,
+            "['Hello']",
+            "Opt(Keyword('Hello'))",
+        )
+        self.check_all(
+            ck,
+            "['Hello']",
+            "Opt('Hello')",
+            "Opt(CaselessKeyword('Hello'))",
+        )
+
+        pp.ParserElement.inline_literals_using(pp.Suppress)
+
+        self.check_all(
+            ck,
+            "['Hello']",
+            "Opt(CaselessKeyword('Hello'))",
+        )
+        self.check_all(
+            sup,
+            "[Suppress:('Hello')]",
+            "Opt('Hello')",
+            "Opt(Suppress(Literal('Hello')))",
+        )
+
+        # Set it back so other tests still work
+        pp.ParserElement.inline_literals_using(pp.Literal)
+
 
 class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
     suite_context = None
