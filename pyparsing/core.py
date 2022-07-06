@@ -477,9 +477,39 @@ class ParserElement(ABC):
         self.suppress_warnings_: List[Diagnostics] = []
 
     def __repr__(self):
+        """Returns a canonical string representation of this element.  This is
+        often, but not always, an expression that would produce a similar
+        element if evaluated.
+
+        Instances of the literal wrapper class (set by
+        :meth:`inline_literals_using`) are written as literals when possible.
+        For other options, see :meth:`__format__`.
+        """
         return f"{self:r}"
 
     def __format__(self, spec):
+        """Formats an element for printing or f-string interpolation.
+
+        Supported conversion specifiers are:
+
+          - ``s`` or none: as given by :meth:`__str__`
+          - ``r``: as given by :meth:`__repr__`
+          - ``f``: as given by :meth:`__repr__`, except that instances of the
+            literal wrapper class are written out in full
+
+        Example::
+
+            parser = OneOrMore("Hello") + "world"
+            # Either of the following:
+            print("{}\\n{:r}\\n{:f}".format(parser, parser, parser)
+            print(f"{parser}\\n{parser:r}\\n{parser:f}")
+
+        results in::
+
+            {{'Hello'}... 'world'}
+            Literal('Hello')[1, ...] + 'world'
+            Literal('Hello')[1, ...] + Literal('world')
+        """
         if not spec or spec == "s":
             return str(self)
         elif spec == "r":
