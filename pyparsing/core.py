@@ -4001,8 +4001,10 @@ class And(ParseExpression):
         self.callPreparse = True
 
     def _format(self, full=False, _full_once=False, _is_term=False):
-        if len(self.exprs) < 2:
-            return f"{type(self).__name__}({self.exprs!r})"
+        if not self.exprs:
+            return f"{type(self).__name__}([])"
+        if len(self.exprs) == 1:
+            return f"{type(self).__name__}([{self.exprs[0]._format(full)}])"
 
         builder = [self.exprs[0]._format(full, _full_once=True, _is_term=True)]
         nextOp = "+"
