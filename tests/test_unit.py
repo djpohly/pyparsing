@@ -631,6 +631,25 @@ class Test01c_ParseExpressionFormatting(TestCase):
             # "Forward(Word('0123456789') | (Literal('(') + Forward(...) + Char('*+') + Word('0123456789') + Literal(')')))"
         )
 
+    @unittest.expectedFailure
+    def testForwardIndirect(self):
+        f = pp.Forward()
+        g = pp.Forward()
+        f <<= g
+        g <<= f
+
+        # f and g are identical, but str() doesn't yield identical results
+        self.check_all(
+            f,
+            "Forward: Forward: : ...",
+            "Forward(Forward(Forward(...)))",
+        )
+        self.check_all(
+            g,
+            "Forward: Forward: : ...",
+            "Forward(Forward(Forward(...)))",
+        )
+
     def testCombine(self):
         p = pp.Combine("Hello")
         self.check_all(
