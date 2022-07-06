@@ -184,6 +184,10 @@ class Test01b_PyparsingUnitTestUtilitiesTests(TestCase):
                         pass
 
 class Test01c_ParseExpressionFormatting(TestCase):
+    def setUp(self):
+        # Make sure the inline class is reset to default
+        pp.ParserElement.inline_literals_using(pp.Literal)
+
     def check_all(self, p, good_str, good_repr, good_full=None):
         if good_full is None:
             good_full = good_repr
@@ -769,9 +773,6 @@ class Test01c_ParseExpressionFormatting(TestCase):
             "Opt('Hello')",
             "Opt(Suppress(Literal('Hello')))",
         )
-
-        # Set it back so other tests still work
-        pp.ParserElement.inline_literals_using(pp.Literal)
 
 
 class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
