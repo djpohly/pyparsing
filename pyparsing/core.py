@@ -1395,7 +1395,7 @@ class ParserElement(ABC):
     def __add__(self, other) -> "ParserElement":
         """
         Implementation of ``+`` operator - returns :class:`And`. Adding strings to a :class:`ParserElement`
-        converts them to :class:`Literal`\ s by default.
+        converts them to :class:`Literal`\\ s by default.
 
         Example::
 
@@ -1657,8 +1657,8 @@ class ParserElement(ABC):
 
         ``None`` may be used in place of ``...``.
 
-        Note that ``expr[..., n]`` and ``expr[m, n]``do not raise an exception
-        if more than ``n`` ``expr``s exist in the input stream.  If this behavior is
+        Note that ``expr[..., n]`` and ``expr[m, n]`` do not raise an exception
+        if more than ``n`` ``expr``\\ s exist in the input stream.  If this behavior is
         desired, then write ``expr[..., n] + ~expr``.
 
         For repetition with a stop_on expression, use slice notation:
