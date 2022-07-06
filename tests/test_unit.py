@@ -616,16 +616,64 @@ class Test01c_ParseExpressionFormatting(TestCase):
         )
 
     def testForward(self):
-        pass
+        p = pp.Forward()
+        p <<= ppc.integer() | pp.And(["(", p, pp.Char("+*"), ppc.integer(), ")"])
+        self.check_all(
+            p,
+            "Forward: {integer | {'(' : ... (*+) integer ')'}}",
+            "Forward(...)",
+            # Perhaps in future:
+            # "Forward(Word('0123456789') | (Literal('(') + Forward(...) + Char('*+') + Word('0123456789') + ')'))",
+            # "Forward(Word('0123456789') | (Literal('(') + Forward(...) + Char('*+') + Word('0123456789') + Literal(')')))"
+        )
 
     def testCombine(self):
-        pass
+        p = pp.Combine("Hello")
+        self.check_all(
+            p,
+            "Combine:('Hello')",
+            "Combine('Hello')",
+            "Combine(Literal('Hello'))",
+        )
+
+        p = pp.Combine(pp.Word("aeiou"))
+        self.check_all(
+            p,
+            "Combine:(W:(aeiou))",
+            "Combine(Word('aeiou'))",
+        )
 
     def testGroup(self):
-        pass
+        p = pp.Group("Hello")
+        self.check_all(
+            p,
+            "Group:('Hello')",
+            "Group('Hello')",
+            "Group(Literal('Hello'))",
+        )
+
+        p = pp.Group(pp.Word("aeiou"))
+        self.check_all(
+            p,
+            "Group:(W:(aeiou))",
+            "Group(Word('aeiou'))",
+        )
 
     def testDict(self):
-        pass
+        p = pp.Dict("Hello")
+        self.check_all(
+            p,
+            "Dict:('Hello')",
+            "Dict('Hello')",
+            "Dict(Literal('Hello'))",
+        )
+
+        p = pp.Dict(pp.Word("aeiou"))
+        self.check_all(
+            p,
+            "Dict:(W:(aeiou))",
+            "Dict(Word('aeiou'))",
+        )
 
     def testSuppress(self):
         p = pp.Suppress("Hello")
